@@ -21,8 +21,26 @@ challenge_config.py    Testi da adattare alla traccia
 ml_pipeline.py         Preprocessing, modelli e metriche
 .streamlit/config.toml Tema visivo
 PRESENTATION_SHEET.md  Decisioni del team, demo e pitch
+SLIDES_BRIEF.md        Struttura e testi richiesti per le slide
+CONTRIBUTING.md        Regole di modularità, commenti e verifica
+setup.ps1              Creazione dell'ambiente riproducibile
+run.ps1                Avvio dell'app con l'interprete della repo
 requirements.txt       Dipendenze runtime
 ```
+
+## Installazione per un collaboratore
+
+Il repository contiene tutto ciò che serve per eseguire l’app, tranne Python e le dipendenze scaricate da `pip`. Dopo aver accettato l’invito GitHub:
+
+```powershell
+git clone https://github.com/lcaucci27/hackathon-ai.git
+Set-Location .\hackathon-ai
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\setup.ps1
+.\run.ps1
+```
+
+La configurazione è verificata con Python 3.12. Dataset riservati, credenziali e istruzioni personali per gli strumenti di sviluppo devono essere trasferiti fuori da Git e non sono necessari per avviare la baseline.
 
 ## Avvio con PowerShell
 
@@ -52,6 +70,8 @@ Aprire `http://localhost:8501`. Interrompere il server con `Ctrl+C`.
 4. Scegliere un solo percorso principale: previsione, segmentazione o anomalie.
 5. Collegare l’output a una decisione dell’utente finale.
 6. Conservare un file piccolo e noto per la demo di riserva.
+
+Dopo la demo, compilare `SLIDES_BRIEF.md` con metriche e screenshot reali prima di generare la presentazione.
 
 Non descrivere correlazioni o feature importance come cause. Le metriche sul test set misurano il comportamento sul campione disponibile; non dimostrano validità su popolazioni o periodi diversi.
 

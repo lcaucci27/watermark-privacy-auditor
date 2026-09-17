@@ -61,7 +61,8 @@ def _clean_features(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
         X = X.drop(columns=unusable)
         notes.append(f"Colonne vuote o costanti escluse: {', '.join(map(str, unusable))}")
 
-    # Identifier-like columns usually memorize rows and hurt generalization.
+    # Gli identificatori quasi univoci permettono al modello di memorizzare le righe
+    # senza apprendere una relazione riutilizzabile su dati nuovi.
     identifiers = [
         column for column in X.columns
         if (str(column).lower() in {"id", "uuid", "index"} or str(column).lower().endswith("_id"))
