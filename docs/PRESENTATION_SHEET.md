@@ -56,7 +56,7 @@ Non migrare l’intera applicazione durante la gara. Aggiungere un backend separ
 
 Strategia di estensione:
 
-1. Conservare `ml_pipeline.py` come logica di dominio.
+1. Conservare `core/ml_pipeline.py` come logica di dominio.
 2. Esporre solo le funzioni necessarie tramite FastAPI.
 3. Tenere Streamlit come console operativa, salvo requisito esplicito di frontend diverso.
 4. Usare Gradio solo per una demo centrata su audio, webcam o confronto diretto tra input e output multimediale.

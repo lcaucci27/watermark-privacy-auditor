@@ -9,8 +9,8 @@ import plotly.express as px
 import streamlit as st
 from sklearn.datasets import load_breast_cancer, load_diabetes, load_iris
 
-from challenge_config import CHALLENGE
-from ml_pipeline import detect_anomalies, infer_task, serialize_model, train_clustering, train_supervised
+from core.challenge_config import CHALLENGE
+from core.ml_pipeline import detect_anomalies, infer_task, serialize_model, train_clustering, train_supervised
 
 st.set_page_config(page_title=CHALLENGE.page_title, page_icon=":material/hub:", layout="wide")
 

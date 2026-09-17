@@ -2,13 +2,13 @@
 
 ## Confini dei moduli
 
-- `app.py` compone l’interfaccia e collega le azioni dell’utente alle funzioni di dominio.
-- `challenge_config.py` contiene testi e identità da adattare alla traccia.
-- `ml_pipeline.py` contiene preprocessing, modelli, metriche e serializzazione.
-- Nuove pipeline autonome vanno in moduli dedicati, per esempio `text_pipeline.py`, `vision_pipeline.py` o `timeseries_pipeline.py`.
-- La presentazione non deve contenere formule di preprocessing o addestramento replicate dalla pipeline.
+- `streamlit_app.py` compone l'interfaccia e collega le azioni dell'utente alle funzioni di dominio.
+- `core/challenge_config.py` contiene testi e identità da adattare alla traccia.
+- `core/ml_pipeline.py` contiene preprocessing, modelli, metriche e serializzazione.
+- Le nuove pipeline autonome vanno in `core/`, per esempio `text_pipeline.py`, `vision_pipeline.py` o `timeseries_pipeline.py`.
+- I materiali per demo e presentazione vanno in `docs/`; gli script operativi vanno in `scripts/`.
 
-Estrarre una funzione quando una regola di dominio deve essere testata senza Streamlit, quando lo stesso blocco viene usato due volte o quando il nome della funzione rende il flusso più leggibile del codice inline.
+Estrarre una funzione quando una regola deve essere testata senza Streamlit, quando un blocco viene usato due volte o quando il nome della funzione rende il flusso più leggibile del codice inline.
 
 ## Nomi e lingua
 
@@ -19,9 +19,7 @@ Estrarre una funzione quando una regola di dominio deve essere testata senza Str
 
 ## Commenti utili
 
-Un commento deve spiegare una ragione, un vincolo o un caso limite che il codice non rende evidente.
-
-Commento utile:
+Un commento spiega una ragione, un vincolo o un caso limite che il codice non rende evidente.
 
 ```python
 # Lo split stratificato richiede almeno due righe per classe; con classi singole
@@ -29,45 +27,38 @@ Commento utile:
 stratify = y if y.value_counts().min() >= 2 else None
 ```
 
-Commento inutile:
-
-```python
-# Divide i dati
-X_train, X_test = train_test_split(X, y)
-```
-
-Non usare commenti per tradurre ogni istruzione in prosa. Aggiornare o rimuovere un commento quando cambia il comportamento che descrive.
+Non tradurre ogni istruzione in prosa. Aggiornare o rimuovere il commento quando cambia il comportamento.
 
 ## Regole per la GUI
 
-- Un controllo deve avere un’etichetta che descriva il dato modificato.
-- Un errore deve indicare quale input correggere.
-- Una metrica deve specificare dataset o campione a cui si riferisce.
-- Una spiegazione deve distinguere correlazione, importanza predittiva e causalità.
-- Preferire elementi Streamlit nativi; usare CSS solo su classi stabili generate con `key`.
+- Ogni controllo deve dichiarare quale dato modifica.
+- Ogni errore deve indicare quale input correggere.
+- Ogni metrica deve specificare dataset o campione a cui si riferisce.
+- Distinguere correlazione, importanza predittiva e causalità.
+- Preferire elementi Streamlit nativi; usare CSS solo quando il tema non basta.
 - Non usare `use_container_width`; usare `width="stretch"` o `width="content"`.
 - Non aggiungere dipendenze remote al percorso principale.
 
 ## Verifica minima
 
+PowerShell:
+
 ```powershell
-.\.venv\Scripts\python.exe -m py_compile .\app.py .\challenge_config.py .\ml_pipeline.py
+.\.venv\Scripts\python.exe -m py_compile .\streamlit_app.py .\core\challenge_config.py .\core\ml_pipeline.py
 .\.venv\Scripts\python.exe -m pip check
-.\.venv\Scripts\python.exe -c "from streamlit.testing.v1 import AppTest; app = AppTest.from_file('app.py').run(timeout=120); print(app.exception)"
+.\.venv\Scripts\python.exe -c "from streamlit.testing.v1 import AppTest; app = AppTest.from_file('streamlit_app.py').run(timeout=120); print(app.exception)"
 git diff --check
 ```
 
-Per una modifica a una pipeline, eseguire almeno un dataset coerente con il caso cambiato. Per una modifica alla GUI, controllare il percorso interessato da caricamento a download.
-
-Su macOS gli stessi controlli usano l’interprete della repository:
+macOS:
 
 ```bash
-.venv/bin/python -m py_compile app.py challenge_config.py ml_pipeline.py
+.venv/bin/python -m py_compile streamlit_app.py core/challenge_config.py core/ml_pipeline.py
 .venv/bin/python -m pip check
-.venv/bin/python -c "from streamlit.testing.v1 import AppTest; app = AppTest.from_file('app.py').run(timeout=120); print(app.exception)"
+.venv/bin/python -c "from streamlit.testing.v1 import AppTest; app = AppTest.from_file('streamlit_app.py').run(timeout=120); print(app.exception)"
 git diff --check
 ```
 
-## Criterio di completamento
+Per una modifica alla pipeline, eseguire almeno un dataset coerente con il caso cambiato. Per una modifica alla GUI, controllare il percorso interessato da caricamento a download.
 
 Una modifica è pronta quando il comportamento è verificato, i messaggi indicano limiti reali, il percorso offline resta disponibile e il diff non include file privati, cache o dati della gara.

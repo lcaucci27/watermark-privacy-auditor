@@ -1,11 +1,11 @@
 # Brief per le slide
 
-Usare questo documento dopo aver compilato `PRESENTATION_SHEET.md` e completato la demo. Non generare slide finché target, metrica e output atteso contengono valori reali.
+Usare questo documento dopo aver compilato `docs/PRESENTATION_SHEET.md` e completato la demo. Non generare slide finché target, metrica e output atteso contengono valori reali.
 
 ## Materiale da raccogliere
 
-- `PRESENTATION_SHEET.md` compilato;
-- nome e descrizione finali da `challenge_config.py`;
+- `docs/PRESENTATION_SHEET.md` compilato;
+- nome e descrizione finali da `core/challenge_config.py`;
 - una schermata del dataset o della qualità dei dati;
 - una schermata del risultato principale;
 - metrica calcolata sul test set;
@@ -160,7 +160,7 @@ Frase del relatore:
 Copiare questo blocco nello strumento scelto per generare la presentazione:
 
 ```text
-Leggi PRESENTATION_SHEET.md, SLIDES_BRIEF.md e challenge_config.py. Crea una presentazione 16:9 di massimo sei slide per un pitch di tre minuti. Usa esclusivamente fatti, metriche e limiti presenti nei file forniti. Se un campo è vuoto, mantieni un segnaposto esplicito invece di inventare il contenuto.
+Leggi docs/PRESENTATION_SHEET.md, docs/SLIDES_BRIEF.md e core/challenge_config.py. Crea una presentazione 16:9 di massimo sei slide per un pitch di tre minuti. Usa esclusivamente fatti, metriche e limiti presenti nei file forniti. Se un campo è vuoto, mantieni un segnaposto esplicito invece di inventare il contenuto.
 
 Per ogni slide restituisci: titolo dichiarativo, testo visibile, visuale consigliata, dati necessari e note del relatore. Mantieni massimo 35 parole visibili per slide. Usa la palette acquamarina, avorio, corallo, oro e antracite dell’app. Evita claim promozionali, metafore generiche e ripetizioni. Distingui risultati sul test set, deduzioni e ipotesi operative.
 ```

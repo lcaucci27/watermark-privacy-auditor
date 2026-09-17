@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$projectRoot = $PSScriptRoot
+$projectRoot = Split-Path -Parent $PSScriptRoot
 $venvPath = Join-Path $projectRoot ".venv"
 $venvPython = Join-Path $venvPath "Scripts\python.exe"
 $requirementsPath = Join-Path $projectRoot "requirements.txt"
@@ -16,4 +16,4 @@ if (-not (Test-Path -LiteralPath $venvPython)) {
 & $venvPython -m pip install -r $requirementsPath
 & $venvPython -m pip check
 
-Write-Host "Ambiente pronto. Avvia l'app con: .\run.ps1"
+Write-Host "Ambiente pronto. Avvia l'app con: .\scripts\run.ps1"

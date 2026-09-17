@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 venv_path="$project_root/.venv"
 venv_python="$venv_path/bin/python"
 requirements_path="$project_root/requirements.txt"
@@ -24,4 +24,4 @@ fi
 "$venv_python" -m pip install -r "$requirements_path"
 "$venv_python" -m pip check
 
-printf '%s\n' "Ambiente pronto. Avvia l'app con: ./run.sh"
+printf '%s\n' "Ambiente pronto. Avvia l'app con: ./scripts/run.sh"

@@ -28,8 +28,8 @@ L’installazione di Homebrew non è richiesta se Python 3.12 è già disponibil
 ## 3. Preparare l’ambiente
 
 ```bash
-chmod +x setup.sh run.sh
-./setup.sh
+chmod +x scripts/setup.sh scripts/run.sh
+./scripts/setup.sh
 ```
 
 Lo script crea `.venv`, installa le versioni presenti in `requirements.txt` e verifica conflitti tra pacchetti.
@@ -37,7 +37,7 @@ Lo script crea `.venv`, installa le versioni presenti in `requirements.txt` e ve
 ## 4. Avviare l’app
 
 ```bash
-./run.sh
+./scripts/run.sh
 ```
 
 Aprire `http://localhost:8501`. Interrompere il server con `Ctrl+C`.
@@ -50,14 +50,14 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 python -m pip check
-python -m streamlit run app.py
+python -m streamlit run streamlit_app.py
 ```
 
 ## Verifica prima della gara
 
 ```bash
-.venv/bin/python -m py_compile app.py challenge_config.py ml_pipeline.py
-.venv/bin/python -c "from streamlit.testing.v1 import AppTest; app = AppTest.from_file('app.py').run(timeout=120); print(app.exception)"
+.venv/bin/python -m py_compile streamlit_app.py core/challenge_config.py core/ml_pipeline.py
+.venv/bin/python -c "from streamlit.testing.v1 import AppTest; app = AppTest.from_file('streamlit_app.py').run(timeout=120); print(app.exception)"
 git status --short
 ```
 
