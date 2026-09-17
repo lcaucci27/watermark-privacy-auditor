@@ -25,6 +25,9 @@ SLIDES_BRIEF.md        Struttura e testi richiesti per le slide
 CONTRIBUTING.md        Regole di modularità, commenti e verifica
 setup.ps1              Creazione dell'ambiente riproducibile
 run.ps1                Avvio dell'app con l'interprete della repo
+setup.sh                Creazione dell'ambiente su macOS
+run.sh                  Avvio dell'app su macOS
+MACOS_SETUP.md          Handoff completo per il collaboratore Mac
 requirements.txt       Dipendenze runtime
 ```
 
@@ -41,6 +44,18 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
 
 La configurazione è verificata con Python 3.12. Dataset riservati, credenziali e istruzioni personali per gli strumenti di sviluppo devono essere trasferiti fuori da Git e non sono necessari per avviare la baseline.
+
+Su macOS usare invece:
+
+```bash
+git clone https://github.com/lcaucci27/hackathon-ai.git
+cd hackathon-ai
+chmod +x setup.sh run.sh
+./setup.sh
+./run.sh
+```
+
+Le istruzioni complete sono in `MACOS_SETUP.md`.
 
 ## Avvio con PowerShell
 

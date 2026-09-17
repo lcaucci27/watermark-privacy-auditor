@@ -59,6 +59,15 @@ git diff --check
 
 Per una modifica a una pipeline, eseguire almeno un dataset coerente con il caso cambiato. Per una modifica alla GUI, controllare il percorso interessato da caricamento a download.
 
+Su macOS gli stessi controlli usano l’interprete della repository:
+
+```bash
+.venv/bin/python -m py_compile app.py challenge_config.py ml_pipeline.py
+.venv/bin/python -m pip check
+.venv/bin/python -c "from streamlit.testing.v1 import AppTest; app = AppTest.from_file('app.py').run(timeout=120); print(app.exception)"
+git diff --check
+```
+
 ## Criterio di completamento
 
 Una modifica è pronta quando il comportamento è verificato, i messaggi indicano limiti reali, il percorso offline resta disponibile e il diff non include file privati, cache o dati della gara.
