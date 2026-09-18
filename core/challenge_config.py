@@ -21,16 +21,16 @@ class ChallengeConfig:
 
 
 CHALLENGE = ChallengeConfig(
-    product_name="Segnale",
-    page_title="Segnale · Auditor privacy e sicurezza",
+    product_name="Filigrana",
+    page_title="Filigrana · Auditor privacy e sicurezza",
     event_line="CAMPIONATO UNIVERSITARIO AI 2026  /  NAPOLI  /  18 SETTEMBRE  /  PRIVACY",
-    subtitle="Auditor di privacy e sicurezza per l’infrastruttura urbana",
+    subtitle="Quello che i dati anonimi lasciano vedere in controluce",
     description=(
         "Collega bollettini CSIRT, provvedimenti del Garante e telemetria dei servizi: "
         "individua asset esposti, dati personali nei flussi e rischio di re-identificazione."
     ),
     status_badges=":green-badge[Dati locali] :blue-badge[Seed 42] :orange-badge[Nessuna API] :red-badge[GDPR art. 5, 9, 25, 32]",
-    sidebar_label="SEGNALE / AUDITOR",
+    sidebar_label="FILIGRANA / AUDITOR",
     upload_prompt="Trascina qui un estratto di telemetria o un registro del servizio.",
     privacy_note="Elaborazione sul dispositivo. Nessun dato viene inviato fuori.",
 )

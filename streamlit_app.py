@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from io import BytesIO
+from pathlib import Path
 
 import pandas as pd
 import plotly.express as px
@@ -14,7 +15,10 @@ from core.ml_pipeline import detect_anomalies, infer_task, serialize_model, trai
 from core.privacy import synthetic_residents
 from views import rules_tab, telemetry_tab, threats_tab
 
-st.set_page_config(page_title=CHALLENGE.page_title, page_icon=":material/hub:", layout="wide")
+ASSETS = Path(__file__).resolve().parent / "assets"
+
+st.set_page_config(page_title=CHALLENGE.page_title, page_icon=str(ASSETS / "favicon.png"), layout="wide")
+st.logo(str(ASSETS / "logo.svg"), icon_image=str(ASSETS / "logo_mark.svg"), size="large")
 
 SAMPLE_RESIDENTS = "Residenti · telemetria sintetica"
 SAMPLE_IRIS = "Iris · classificazione o segmentazione"
@@ -104,7 +108,7 @@ st.html(
 
 with st.container(key="hero"):
     st.caption(CHALLENGE.event_line)
-    st.title(CHALLENGE.product_name, icon=":material/hub:")
+    st.title(CHALLENGE.product_name)
     st.subheader(CHALLENGE.subtitle)
     st.caption(CHALLENGE.description)
     st.markdown(CHALLENGE.status_badges)

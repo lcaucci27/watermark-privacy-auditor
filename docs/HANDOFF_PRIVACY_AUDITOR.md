@@ -64,3 +64,9 @@ Prodotto: **Segnale, auditor per il DPO comunale**. Percorso demo:
 2. Adattare `corpus_loader` ai campi reali CSIRT (Impatto sistemico come etichetta e punteggio; togliere frasi di gravità dal testo).
 3. Aggiungere a `core/privacy.py` il test "pseudonimo nascosto" e la scheda Roma WiFi con prima/dopo.
 4. Collegare le tre schede nel percorso demo; congelare; screenshot e CSV di riserva; pitch.
+
+## Identità (aggiunta)
+
+- Nome: **Filigrana**. Una filigrana è un segno nascosto nella carta, visibile solo in controluce: come `LOGINCOUNT` nei dati "anonimi" di Roma WiFi.
+- Logo: griglia 3×3 di record in acquamarina `#1F6B69`, uno in corallo `#A63F2E` (il record che si distingue dagli altri, cioè re-identificabile), su avorio `#F7F3E8` con bordo antracite `#17282B`.
+- File: `assets/logo.svg` (segno + nome), `assets/logo_mark.svg`, `assets/logo_mark.png`, `assets/favicon.png`. Collegati in `streamlit_app.py` con `st.logo` e `page_icon`; testi in `core/challenge_config.py`.
