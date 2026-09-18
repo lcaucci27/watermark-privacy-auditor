@@ -132,3 +132,20 @@ Prodotto: **Watermark, auditor per il DPO comunale**. Percorso demo:
 - Nome: **Watermark** (in italiano "filigrana"). Una filigrana è un segno nascosto nella carta, visibile solo in controluce: come `LOGINCOUNT` nei dati "anonimi" di Roma WiFi.
 - Logo: griglia 3×3 di record in acquamarina `#1F6B69`, uno in corallo `#A63F2E` (il record che si distingue dagli altri, cioè re-identificabile), su avorio `#F7F3E8` con bordo antracite `#17282B`.
 - File: `assets/logo.svg` (segno + nome), `assets/logo_mark.svg`, `assets/logo_mark.png`, `assets/favicon.png`. Collegati in `streamlit_app.py` con `st.logo` e `page_icon`; testi in `core/challenge_config.py`.
+
+## Stato al 18/09/2026 ore 12:30 (interfaccia v2)
+
+**Interfaccia** (`streamlit_app.py` + `app_pages/`), navigazione in alto:
+1. **Assistente** (`app_pages/assistente.py`): chat in italiano. `core/assistant.py` riconosce l'intenzione (TF-IDF a n-grammi di caratteri + vicino più simile; soglia % letta dalla frase) e `views/assistant_answers.py` esegue gli strumenti mostrando i passaggi (`st.status(type="step")`). Intenzioni: verifica, correggi, minacce, norme, spiega, rapporto, allarme (testo incollato), aiuto, cerca.
+2. **Rapporto per il DPO** (`views/audit_tab.py`): agente `core/audit_agent.py`, cinque controlli, rapporto Markdown scaricabile.
+3. **Strumenti avanzati** (`app_pages/avanzate.py`): le schede statistiche precedenti, invariate.
+
+**IA, tutta locale:**
+- Modello di impatto CSIRT (`core/threat_model.py`): TF-IDF + regressione logistica su 819 bollettini (777 con impatto: Alto 340, Medio 255, Critico 182). Frasi di gravità, CVSS e anni delle CVE rimossi dal testo. Validazione temporale: addestrato fino al 03/08/2026, testato sui 195 successivi, accuratezza bilanciata 0,74 contro 0,33 della classe più frequente. Senza/con gravità dichiarata: 0,67/0,69. Spiegazione per parola con `explain`.
+- Ottimizzatore privacy-utilità (`core/privacy_optimizer.py`): 36 versioni del dataset; rischio = sessioni uniche su tutte le righe; utilità = R² in validazione incrociata di un gradient boosting che stima il traffico. Con soglia 15%: "orario al 3 ore · civico · contatore in fasce", rischio 14,7%, utilità 91%. Risultati salvati in `data/.varianti_*.csv` (esclusi da Git).
+- Test pseudonimi (`core/linkability.py`): su 14 giorni LOGINCOUNT 92,8% contro 49,8%.
+
+**LLM opzionale** (`core/llm.py`, `requirements-llm.txt`): spento di default. Si attiva solo con `pip install -r requirements-llm.txt` e `ANTHROPIC_API_KEY`. Modello `claude-opus-5` con fallback lato server su `claude-opus-4-8`. Riceve solo domanda e riassunto aggregato, mai righe del dataset.
+
+**Percorso demo (3 minuti):** Assistente → "Questo dataset è pubblicabile?" → "Perché è un problema?" → "Correggilo sotto il 15%" → "Quali sistemi sono a rischio?" → incollare un allarme CSIRT → "Fammi il rapporto".
+Prima del pitch: avviare l'app e fare una volta "Correggilo" per popolare la cache (circa 45 secondi alla prima esecuzione).

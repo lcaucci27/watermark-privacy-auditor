@@ -31,8 +31,17 @@ def load_wifi(raw: bytes) -> tuple[pd.DataFrame, int]:
 
 @st.cache_data(show_spinner="L’ottimizzatore prova 36 versioni del dataset…")
 def variants(frame: pd.DataFrame) -> pd.DataFrame:
+    # Il calcolo richiede circa 40 secondi: il risultato si salva su disco per gli avvii successivi.
+    fingerprint = pd.util.hash_pandas_object(frame[["inizio", "sede", "DTLN", "LOGINCOUNT"]], index=False).sum()
+    cached = DATA_DIR / f".varianti_{fingerprint & 0xFFFFFFFF:08x}.csv"
+    if cached.exists():
+        return pd.read_csv(cached)
     table = explore(frame)
     table["frontiera"] = pareto(table)
+    try:
+        table.to_csv(cached, index=False)
+    except OSError:
+        pass
     return table
 
 

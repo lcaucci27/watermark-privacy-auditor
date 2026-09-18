@@ -26,10 +26,15 @@ def bulletin_text(df: pd.DataFrame, mask_severity: bool = True) -> pd.Series:
     text = df[[field for field in TEXT_FIELDS if field in df.columns]].fillna("").astype(str).agg(" ".join, axis=1)
     if mask_severity:
         text = text.str.replace(SEVERITY_PATTERN, " ", regex=True)
+    # L'anno nel codice CVE indica solo quando è uscito il bollettino, non quanto è grave.
+    text = text.str.replace(r"CVE-\d{4}-\d+", " cve_citata ", regex=True)
+    def column(name: str, default: object) -> pd.Series:
+        return df[name] if name in df.columns else pd.Series(default, index=df.index)
+
     signals = (
-        " tipo_" + df.get("tipo", pd.Series("", index=df.index)).fillna("").astype(str).str.lower()
-        + " sfruttata_" + (df.get("n_cve_sfruttate", 0) > 0).astype(str).str.lower()
-        + " poc_" + (df.get("n_cve_con_poc", 0) > 0).astype(str).str.lower()
+        " tipo_" + column("tipo", "").fillna("").astype(str).str.lower()
+        + " sfruttata_" + (column("n_cve_sfruttate", 0).fillna(0) > 0).astype(str).str.lower()
+        + " poc_" + (column("n_cve_con_poc", 0).fillna(0) > 0).astype(str).str.lower()
     )
     return text + signals
 

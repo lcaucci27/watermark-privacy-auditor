@@ -1,0 +1,3 @@
+# Estensione opzionale: riformulazione delle risposte con Claude.
+# Non serve per usare l'app. Richiede anche la variabile d'ambiente ANTHROPIC_API_KEY.
+anthropic
