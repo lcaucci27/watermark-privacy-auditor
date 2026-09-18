@@ -208,3 +208,51 @@ def chat_stream(question: str, facts: str, model: str) -> Iterator[str]:
         yield "_(Riscrittura locale scartata dai controlli: resta valida la risposta calcolata sopra.)_"
         return
     yield answer.markdown()
+
+
+CASUAL_SYSTEM_PROMPT = (
+    "Il tuo nome è Watermark. Sei un assistente locale per DPO e responsabili open data. "
+    "Conversa in italiano corretto, naturale e conciso. Usa il presente e rispondi normalmente a saluti, ringraziamenti e domande "
+    "sul tuo funzionamento. Se la richiesta riguarda un dataset, invita l'utente a formulare la domanda e spiega "
+    "che userai i controlli locali dell'app. Se la richiesta è estranea al tuo ambito, rispondi cortesemente e "
+    "ricorda in una frase che ti occupi di privacy, open data e sicurezza dei dataset comunali. "
+    "Non inventare risultati, norme o fatti sul dataset. Massimo 80 parole."
+)
+
+
+def casual_chat_stream(question: str, history: list[dict[str, str]], model: str) -> Iterator[str]:
+    """Conversa davvero in streaming; non esegue controlli né inventa risultati sul dataset."""
+    messages = [{"role": "system", "content": CASUAL_SYSTEM_PROMPT}]
+    messages.extend(history[-6:])
+    messages.append({"role": "user", "content": question})
+    payload = {
+        "model": model,
+        "stream": True,
+        "options": {"temperature": 0.3, "num_ctx": 4096, "num_predict": 120},
+        "messages": messages,
+    }
+    try:
+        with _post("/api/chat", payload, timeout=180) as response:
+            for raw_line in response:
+                if not raw_line.strip():
+                    continue
+                chunk = json.loads(raw_line)
+                content = chunk.get("message", {}).get("content", "")
+                if content:
+                    yield content
+    except (urllib.error.URLError, TimeoutError, KeyError, TypeError, ValueError, OSError) as exc:
+        logger.warning("Conversazione locale non disponibile: %s", exc)
+        yield casual_fallback(question)
+
+
+def casual_fallback(question: str) -> str:
+    """Risposta naturale minima quando Ollama non è disponibile."""
+    lowered = question.casefold()
+    if any(word in lowered for word in ("ciao", "buongiorno", "buonasera", "salve")):
+        return "Ciao! Sono Watermark. Posso aiutarti a capire se un dataset comunale è pubblicabile, come ridurne il rischio o quali controlli applicare."
+    if "grazie" in lowered:
+        return "Prego. Se vuoi, possiamo verificare il dataset selezionato oppure ragionare su una specifica pubblicazione."
+    return (
+        "Sono Watermark, l'assistente locale per privacy e open data comunali. "
+        "Puoi parlarmi liberamente oppure chiedermi di verificare, correggere o spiegare il dataset selezionato."
+    )

@@ -6,6 +6,8 @@ Acquisire gli screenshot dopo il freeze dell’interfaccia, con finestra desktop
 
 Placeholder: `[SCREENSHOT_VERIFICA_ROMA]`.
 
+File pronto: `01_verifica_roma.png` nella cartella Desktop `Watermark_PowerPoint`.
+
 Posizione: slide 2, visuale dominante.
 
 Preparazione:
@@ -21,6 +23,8 @@ Funzionalità dimostrata: elaborazione del dataset, combinazioni rare, decisione
 
 Placeholder: `[SCREENSHOT_ASSISTENTE_LOCALE]`.
 
+File pronto: `02_assistente_locale.png` nella cartella Desktop `Watermark_PowerPoint`.
+
 Posizione: slide 3, piccolo ritaglio a destra del diagramma IA. Se affolla la slide, spostarlo nelle slide di backup.
 
 Preparazione:
@@ -35,6 +39,8 @@ Funzionalità dimostrata: distinzione tra uso interno e pubblicazione, LLM local
 ## Screenshot C · Incrocio Milano
 
 Placeholder: `[SCREENSHOT_INCROCIO_MILANO]`.
+
+File pronto: `03_incrocio_milano.png` nella cartella Desktop `Watermark_PowerPoint`.
 
 Posizione: slide 4, visuale dominante.
 
@@ -52,6 +58,8 @@ Funzionalità dimostrata: composizione fra dataset ufficiali, conoscenza ausilia
 
 Placeholder: `[SCREENSHOT_VERIFICA_BOLOGNA]`.
 
+File pronto: `04_verifica_bologna.png` nella cartella Desktop `Watermark_PowerPoint`.
+
 Posizione: slide 5, ritaglio secondario oppure slide di backup sulla portabilità.
 
 Preparazione:
@@ -67,6 +75,8 @@ Funzionalità dimostrata: lo stesso motore cambia controllo quando la riga rappr
 ## Screenshot E · Rapporto
 
 Placeholder: `[SCREENSHOT_RAPPORTO]`.
+
+File pronto: `05_audit_completo.png` nella cartella Desktop `Watermark_PowerPoint`.
 
 Posizione: slide di backup per domande tecniche o commerciali.
 

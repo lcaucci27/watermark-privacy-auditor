@@ -11,7 +11,7 @@ INTENT_NAMES = {
     "verifica": "verifica del dataset", "correggi": "correzione automatica", "minacce": "minacce sui sistemi",
     "norme": "riferimenti del Garante", "spiega": "spiegazione", "rapporto": "rapporto per il DPO",
     "allarme": "valutazione di un allarme", "aiuto": "guida", "cerca": "ricerca nelle fonti",
-    "statistica": "analisi statistica",
+    "statistica": "analisi statistica", "chat": "conversazione",
 }
 SUGGESTIONS = {
     ":material/fact_check: Questo dataset è pubblicabile?": "Questo dataset è pubblicabile?",
@@ -74,12 +74,17 @@ with st.expander("Cosa fa e cosa puoi chiedere", icon=":material/help:"):
         "**Esempi:** «Questo dataset è pubblicabile?», «Correggilo sotto il 15%», "
         "«Quali sistemi sono a rischio?», «Cosa dice il Garante?»."
     )
-if data is None:
-    st.info("Scegli o carica un dataset nella barra laterale.", icon=":material/arrow_back:")
-    st.stop()
-
-
 def answer(message: dict, replay: bool) -> str:
+    if message["intent"] == "chat":
+        st.caption(":material/forum: Conversazione locale")
+        if message.get("rewritten"):
+            st.markdown(message["rewritten"])
+            return message["rewritten"]
+        return ""
+    if data is None:
+        text = "Per eseguire un controllo, scegli o carica un dataset nella barra laterale."
+        st.info(text, icon=":material/arrow_back:")
+        return text
     handler = ANSWERS[message["intent"]]
     st.caption(f":material/psychology: Ho capito: {INTENT_NAMES[message['intent']]} · confidenza {message['confidence']:.0%}")
     summary = handler(data, message["question"], message["threshold"], replay, key=str(message["id"]))
@@ -103,6 +108,12 @@ if not st.session_state.messages and not prompt:
         prompt = SUGGESTIONS[picked]
 
 if prompt:
+    previous_chat = []
+    for previous in st.session_state.messages[-6:]:
+        if previous["role"] == "user":
+            previous_chat.append({"role": "user", "content": previous["question"]})
+        elif previous.get("rewritten"):
+            previous_chat.append({"role": "assistant", "content": previous["rewritten"]})
     intent = router().route(prompt)
     st.session_state.messages.append({"role": "user", "question": prompt})
     with st.chat_message("user", avatar=":material/person:"):
@@ -112,8 +123,19 @@ if prompt:
         "intent": intent.name, "confidence": intent.confidence, "threshold": intent.threshold,
     }
     with st.chat_message("assistant", avatar=":material/policy:"):
-        summary = answer(message, replay=False)
-        if writer == LOCAL_CHAT:
+        if intent.name == "chat" and writer == LOCAL_CHAT:
+            st.caption(":material/forum: Conversazione locale · risposta generata sul computer")
+            message["rewritten"] = st.write_stream(
+                local_ai.casual_chat_stream(prompt, previous_chat, local_ai.SPECIALIZED_MODEL)
+            )
+            message["writer"] = "Watermark locale"
+        elif intent.name == "chat":
+            message["rewritten"] = local_ai.casual_fallback(prompt)
+            message["writer"] = "Risposta locale"
+            st.markdown(message["rewritten"])
+        else:
+            summary = answer(message, replay=False)
+        if intent.name != "chat" and writer == LOCAL_CHAT:
             st.markdown(":violet-badge[:material/neurology: Scritto da Watermark sul tuo computer]")
             message["rewritten"] = st.write_stream(
                 local_ai.chat_stream(prompt, summary, local_ai.SPECIALIZED_MODEL)

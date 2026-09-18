@@ -22,6 +22,15 @@ def test_router_extracts_risk_threshold() -> None:
     assert intent.threshold == 0.12
 
 
+def test_router_keeps_small_talk_out_of_the_tool_menu() -> None:
+    router = lexical_router()
+
+    assert router.route("ciao").name == "chat"
+    assert router.route("Ciao, chi sei e come puoi aiutarmi?").name == "chat"
+    assert router.route("come stai?").name == "chat"
+    assert router.route("cosa sai fare?").name == "aiuto"
+
+
 def test_strong_keyword_match_wins_over_misleading_semantics() -> None:
     router = IntentRouter()
     router._semantic = lambda text: ("verifica", 0.99)

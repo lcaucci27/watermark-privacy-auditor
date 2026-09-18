@@ -41,9 +41,14 @@ INTENT_EXAMPLES: dict[str, tuple[str, ...]] = {
         "mostrami l'analisi statistica", "è statisticamente significativo?", "qual è il p-value",
         "intervallo di confidenza", "anova", "quale fattore conta di più", "dimostralo con i test",
     ),
-    "aiuto": ("cosa sai fare", "aiuto", "come ti uso", "quali domande posso fare", "ciao"),
+    "aiuto": ("cosa sai fare", "aiuto", "come ti uso", "quali domande posso fare"),
+    "chat": (
+        "ciao", "buongiorno", "buonasera", "come stai", "grazie", "chi sei",
+        "come ti chiami", "parlami di te", "piacere di conoscerti",
+    ),
 }
 ALERT_HINT = re.compile(r"CVE-\d{4}-\d+|vulnerabilit|sfruttament|exploit|patch|aggiornamento di sicurezza", re.IGNORECASE)
+CASUAL_HINT = re.compile(r"^\s*(ciao|salve|buongiorno|buonasera|grazie)\b", re.IGNORECASE)
 THRESHOLD = re.compile(r"(\d{1,2})\s*%")
 SEMANTIC_MIN = 0.55
 LEXICAL_STRONG = 0.50
@@ -70,6 +75,8 @@ class IntentRouter:
     def route(self, text: str) -> Intent:
         match = THRESHOLD.search(text)
         threshold = int(match.group(1)) / 100 if match else None
+        if CASUAL_HINT.search(text):
+            return Intent("chat", 1.0, threshold, "conversazione")
         # Un allarme incollato è lungo e tecnico: va al modello di impatto, non al classificatore di intenzioni.
         if len(text) > 160 and ALERT_HINT.search(text):
             return Intent("allarme", 1.0, threshold)
@@ -82,7 +89,7 @@ class IntentRouter:
         if semantic is not None:
             return Intent(semantic[0], semantic[1], threshold, "significato")
         if scores[best] < 0.18:
-            return Intent("cerca", float(scores[best]), threshold, "parole")
+            return Intent("chat", float(scores[best]), threshold, "conversazione")
         return Intent(self.labels[best], float(scores[best]), threshold, "parole")
 
     def _semantic(self, text: str) -> tuple[str, float] | None:
