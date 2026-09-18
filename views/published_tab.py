@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from io import BytesIO
 from pathlib import Path
 
 import pandas as pd
@@ -10,18 +9,13 @@ import plotly.express as px
 import streamlit as st
 
 from core.linkability import scan_counters
-from core.wifi_dataset import CORRECTED_KEYS, PUBLISHED_KEYS, correct, is_wifi_dataset, prepare, unique_share
+from core.privacy_optimizer import Variant, publish, recommend
+from core.wifi_dataset import PUBLISHED_KEYS, is_wifi_dataset, unique_share
+from views.shared import frontier_chart, load_wifi, variants
 
 DATA_FILE = Path(__file__).resolve().parent.parent / "data" / "romawifi_sessioni.csv"
 SOURCE_URL = "https://dati.comune.roma.it/catalog/dataset/wifi2026"
 MARGIN = dict(l=20, r=20, t=60, b=20)
-
-
-@st.cache_data(show_spinner="Lettura delle sessioni…")
-def _load(raw: bytes) -> tuple[pd.DataFrame, int]:
-    table = pd.read_csv(BytesIO(raw))
-    frame = prepare(table)
-    return frame, len(table) - len(frame)
 
 
 @st.cache_data(show_spinner="Ricerca di contatori nascosti…")
@@ -50,7 +44,7 @@ def render() -> None:
         raw = _source()
     if raw is None:
         return
-    frame, removed = _load(raw)
+    frame, removed = load_wifi(raw)
     if not is_wifi_dataset(frame):
         st.error("Il CSV non ha le colonne del dataset WiFi di Roma Capitale (STARTDATE, STARTTIME, CIVICO, DTLN, LOGINCOUNT…).", icon=":material/error:")
         return
@@ -102,24 +96,32 @@ def render() -> None:
             )
 
     with st.container(border=True):
-        st.subheader("Correzione proposta", icon=":material/build:")
-        st.markdown(
-            "- rimuovere il contatore\n"
-            "- orario in fasce di un'ora\n"
-            "- municipio al posto del numero civico"
+        st.subheader("Correzione scelta dall'ottimizzatore", icon=":material/tune:")
+        st.caption(
+            "L'ottimizzatore genera 36 versioni del dataset (orario al secondo, 15 minuti, 1 ora, 3 ore; civico, via, municipio; "
+            "contatore pubblicato, in fasce, rimosso), misura rischio e utilità di ciascuna e sceglie la più utile sotto la soglia."
         )
-        corrected = correct(frame)
-        before, after = unique_share(frame, PUBLISHED_KEYS), unique_share(corrected, CORRECTED_KEYS)
-        c1, c2 = st.columns(2)
-        c1.metric("Sessioni uniche, come pubblicato", f"{before:.1%}", border=True)
-        c2.metric("Sessioni uniche, dopo la correzione", f"{after:.1%}", delta=f"{(after - before) * 100:.1f} punti",
-                  delta_color="inverse", border=True)
-        st.caption("Le misure restano utili per il servizio: traffico, durata e lingua per municipio e fascia oraria.")
-        st.download_button(
-            "Scarica il dataset corretto",
-            corrected.drop(columns=["inizio"]).to_csv(index=False).encode("utf-8"),
-            "romawifi_corretto.csv", "text/csv", icon=":material/download:",
-        )
+        max_risk = st.slider("Rischio massimo accettabile", 0.02, 0.50, 0.15, 0.01, format="%.2f", key="published_risk")
+        if st.button("Trova la correzione migliore", icon=":material/auto_fix_high:", key="optimize"):
+            st.session_state["variants_ready"] = True
+        if st.session_state.get("variants_ready"):
+            table = variants(frame)
+            chosen = recommend(table, max_risk)
+            st.plotly_chart(frontier_chart(table, max_risk, chosen), width="stretch")
+            if chosen is None:
+                st.warning("Nessuna versione resta sotto la soglia: alza il rischio accettabile.", icon=":material/warning:")
+            else:
+                c1, c2, c3 = st.columns(3)
+                c1.metric("Come pubblicato", f"{unique_share(frame, PUBLISHED_KEYS):.1%}", border=True)
+                c2.metric("Con la correzione", f"{chosen['rischio']:.1%}", border=True)
+                c3.metric("Utilità conservata", f"{chosen['utilità relativa']:.0%}", border=True)
+                st.success(f"Versione scelta: **{chosen['variante']}**", icon=":material/verified:")
+                corrected = publish(frame, Variant(chosen["orario"], chosen["luogo"], chosen["contatore"]))
+                st.download_button(
+                    "Scarica il dataset corretto",
+                    corrected.drop(columns=["minuto_del_giorno"]).to_csv(index=False).encode("utf-8"),
+                    "romawifi_corretto.csv", "text/csv", icon=":material/download:",
+                )
 
     st.caption(
         "Limiti: il significato di LOGINCOUNT è dedotto dai dati, non confermato dall'ente. "

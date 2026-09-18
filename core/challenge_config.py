@@ -26,8 +26,9 @@ CHALLENGE = ChallengeConfig(
     event_line="CAMPIONATO UNIVERSITARIO AI 2026  /  NAPOLI  /  18 SETTEMBRE  /  PRIVACY",
     subtitle="Quello che i dati anonimi lasciano vedere in controluce",
     description=(
-        "Collega bollettini CSIRT, provvedimenti del Garante e telemetria dei servizi: "
-        "individua asset esposti, dati personali nei flussi e rischio di re-identificazione."
+        "Per il DPO di un Comune, prima di pubblicare open data: verifica se il dataset è davvero anonimo, "
+        "collega i bollettini CSIRT sui sistemi che lo producono e i provvedimenti del Garante, "
+        "sceglie la correzione che toglie il rischio conservando l’informazione utile."
     ),
     status_badges=":green-badge[Dati locali] :blue-badge[Seed 42] :orange-badge[Nessuna API] :red-badge[GDPR art. 5, 9, 25, 32]",
     sidebar_label="WATERMARK / AUDITOR",

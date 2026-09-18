@@ -13,7 +13,7 @@ from sklearn.datasets import load_breast_cancer, load_diabetes, load_iris
 from core.challenge_config import CHALLENGE
 from core.ml_pipeline import detect_anomalies, infer_task, serialize_model, train_clustering, train_supervised
 from core.privacy import synthetic_residents
-from views import published_tab, rules_tab, telemetry_tab, threats_tab
+from views import audit_tab, published_tab, rules_tab, telemetry_tab, threats_tab
 
 ASSETS = Path(__file__).resolve().parent / "assets"
 
@@ -157,8 +157,9 @@ if data.empty:
     st.stop()
 
 signature = dataset_signature(data)
-published, threats, rules, telemetry, overview, explore, model_tab, anomaly_tab = st.tabs(
+audit, published, threats, rules, telemetry, overview, explore, model_tab, anomaly_tab = st.tabs(
     [
+        ":material/policy: Audit",
         ":material/dataset: Dati pubblicati",
         ":material/security: Minacce",
         ":material/gavel: Norme",
@@ -169,6 +170,9 @@ published, threats, rules, telemetry, overview, explore, model_tab, anomaly_tab 
         ":material/warning: Anomalie",
     ]
 )
+
+with audit:
+    audit_tab.render()
 
 with published:
     published_tab.render()

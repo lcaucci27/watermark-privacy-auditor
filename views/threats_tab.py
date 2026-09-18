@@ -7,7 +7,7 @@ import plotly.express as px
 import streamlit as st
 
 from core.text_corpus import discover_topics, extract_entities, search, tag_assets, train_text_classifier
-from core.threat_model import LABEL as IMPACT_LABEL, ablation, train_threat_model
+from core.threat_model import LABEL as IMPACT_LABEL, ablation, explain, temporal_validation, train_threat_model
 from views.corpus_loader import Corpus, corpus_picker
 
 DEFAULT_ASSET = (
@@ -105,6 +105,10 @@ def render() -> Corpus | None:
                         if corpus.label == IMPACT_LABEL:
                             st.session_state["threat_model"] = train_threat_model(corpus.frame)
                             st.session_state["threat_ablation"] = ablation(corpus.frame)
+                            try:
+                                st.session_state["threat_temporal"] = temporal_validation(corpus.frame)
+                            except ValueError:
+                                st.session_state.pop("threat_temporal", None)
                         else:
                             st.session_state["threat_model"] = train_text_classifier(
                                 corpus.frame.assign(_testo=corpus.text), "_testo", corpus.label
@@ -120,6 +124,16 @@ def render() -> Corpus | None:
                 for card, (name, value) in zip(cards, model.metrics.items()):
                     card.metric(labels.get(name, name), f"{value:.3f}" if isinstance(value, float) else value, border=True)
                 st.caption("TF-IDF + regressione logistica. Metriche sul 25% dei bollettini escluso dall’addestramento, seed 42.")
+                temporal = st.session_state.get("threat_temporal")
+                if temporal and corpus.label == IMPACT_LABEL:
+                    st.markdown(
+                        f"**Prova sul futuro**: addestrato sui bollettini fino al {temporal['Addestramento fino al']}, "
+                        f"valutato sui {temporal['Bollettini di test']} successivi."
+                    )
+                    t1, t2, t3 = st.columns(3)
+                    t1.metric("Accuratezza bilanciata", f"{temporal['Accuratezza bilanciata']:.2f}", border=True)
+                    t2.metric("F1 ponderato", f"{temporal['F1 ponderato']:.2f}", border=True)
+                    t3.metric("Classe più frequente", f"{temporal['Classe più frequente']:.2f}", border=True)
                 comparison = st.session_state.get("threat_ablation")
                 if comparison is not None:
                     st.markdown("**Il modello copia la gravità dichiarata dal fornitore?**")
@@ -130,6 +144,11 @@ def render() -> Corpus | None:
                     )
                 st.dataframe(model.top_terms, width="stretch", hide_index=True)
                 new_text = st.text_area("Testo di un nuovo allarme da valutare", key="new_alert")
+                if new_text.strip() and corpus.label == IMPACT_LABEL:
+                    predicted, drivers = explain(model.model, new_text)
+                    st.metric("Impatto sistemico stimato", predicted, border=True)
+                    st.dataframe(drivers, width="stretch", hide_index=True)
+                    st.caption("Parole dell'allarme che hanno spinto di più la stima (peso TF-IDF × coefficiente del modello).")
                 if new_text.strip():
                     probabilities = pd.DataFrame({
                         "etichetta": model.model.classes_,
