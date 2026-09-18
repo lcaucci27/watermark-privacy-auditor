@@ -11,9 +11,12 @@ from sklearn.datasets import load_breast_cancer, load_diabetes, load_iris
 
 from core.challenge_config import CHALLENGE
 from core.ml_pipeline import detect_anomalies, infer_task, serialize_model, train_clustering, train_supervised
+from core.privacy import synthetic_residents
+from views import rules_tab, telemetry_tab, threats_tab
 
 st.set_page_config(page_title=CHALLENGE.page_title, page_icon=":material/hub:", layout="wide")
 
+SAMPLE_RESIDENTS = "Residenti · telemetria sintetica"
 SAMPLE_IRIS = "Iris · classificazione o segmentazione"
 SAMPLE_CANCER = "Tumori mammari · classificazione"
 SAMPLE_DIABETES = "Diabete · regressione"
@@ -39,6 +42,8 @@ METRIC_LABELS = {
 
 @st.cache_data(show_spinner=False)
 def sample_data(name: str) -> tuple[pd.DataFrame, str | None]:
+    if name == SAMPLE_RESIDENTS:
+        return synthetic_residents(), "patologia_cronica"
     if name == SAMPLE_IRIS:
         bundle = load_iris(as_frame=True)
     elif name == SAMPLE_CANCER:
@@ -106,7 +111,7 @@ with st.container(key="hero"):
 
 with st.sidebar:
     st.caption(CHALLENGE.sidebar_label)
-    st.header("Dataset", icon=":material/database:")
+    st.header("Telemetria", icon=":material/database:")
     source = st.segmented_control(
         "Sorgente",
         ["Esempio", "File"],
@@ -118,7 +123,7 @@ with st.sidebar:
     if source == "Esempio":
         choice = st.selectbox(
             "Caso di prova",
-            [SAMPLE_IRIS, SAMPLE_CANCER, SAMPLE_DIABETES, SAMPLE_OPERATIONS],
+            [SAMPLE_RESIDENTS, SAMPLE_IRIS, SAMPLE_CANCER, SAMPLE_DIABETES, SAMPLE_OPERATIONS],
         )
         data, suggested_target = sample_data(choice)
     else:
@@ -140,7 +145,7 @@ with st.sidebar:
         selected = st.multiselect("Valori", options, default=options)
         data = data[data[filter_column].isin(selected)]
 
-    st.caption("Random Forest · K-Means · Isolation Forest")
+    st.caption("TF-IDF · Random Forest · K-Means · Isolation Forest")
     st.caption(CHALLENGE.privacy_note)
 
 if data.empty:
@@ -148,14 +153,26 @@ if data.empty:
     st.stop()
 
 signature = dataset_signature(data)
-overview, explore, model_tab, anomaly_tab = st.tabs(
+threats, rules, telemetry, overview, explore, model_tab, anomaly_tab = st.tabs(
     [
+        ":material/security: Minacce",
+        ":material/gavel: Norme",
+        ":material/sensors: Telemetria",
         ":material/dashboard: Quadro",
         ":material/query_stats: Relazioni",
         ":material/model_training: Modello",
         ":material/warning: Anomalie",
     ]
 )
+
+with threats:
+    csirt_corpus = threats_tab.render()
+
+with rules:
+    garante_corpus = rules_tab.render()
+
+with telemetry:
+    telemetry_tab.render(data, signature, {"CSIRT": csirt_corpus, "Garante": garante_corpus})
 
 with overview:
     st.caption("STRUTTURA DEL DATASET")
@@ -389,4 +406,4 @@ with anomaly_tab:
             icon=":material/download:",
         )
 
-st.caption("Random Forest / K-Means / Isolation Forest  ·  seed 42  ·  esecuzione locale")
+st.caption("TF-IDF / Random Forest / K-Means / Isolation Forest  ·  seed 42  ·  esecuzione locale")

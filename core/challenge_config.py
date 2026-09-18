@@ -22,12 +22,15 @@ class ChallengeConfig:
 
 CHALLENGE = ChallengeConfig(
     product_name="Segnale",
-    page_title="Segnale · Data lab",
-    event_line="CAMPIONATO UNIVERSITARIO AI 2026  /  NAPOLI  /  18 SETTEMBRE",
-    subtitle="Analisi locale di dati tabellari",
-    description="Carica un file, seleziona il target, misura il modello su dati esclusi dall’addestramento.",
-    status_badges=":green-badge[Dati locali] :blue-badge[Seed 42] :orange-badge[Nessuna API]",
-    sidebar_label="SEGNALE / DATA LAB",
-    upload_prompt="Trascina qui il file della traccia.",
+    page_title="Segnale · Auditor privacy e sicurezza",
+    event_line="CAMPIONATO UNIVERSITARIO AI 2026  /  NAPOLI  /  18 SETTEMBRE  /  PRIVACY",
+    subtitle="Auditor di privacy e sicurezza per l’infrastruttura urbana",
+    description=(
+        "Collega bollettini CSIRT, provvedimenti del Garante e telemetria dei servizi: "
+        "individua asset esposti, dati personali nei flussi e rischio di re-identificazione."
+    ),
+    status_badges=":green-badge[Dati locali] :blue-badge[Seed 42] :orange-badge[Nessuna API] :red-badge[GDPR art. 5, 9, 25, 32]",
+    sidebar_label="SEGNALE / AUDITOR",
+    upload_prompt="Trascina qui un estratto di telemetria o un registro del servizio.",
     privacy_note="Elaborazione sul dispositivo. Nessun dato viene inviato fuori.",
 )
