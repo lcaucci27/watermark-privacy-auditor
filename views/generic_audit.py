@@ -28,14 +28,12 @@ def render(data: ActiveDataset) -> None:
     default_direct, default_quasi, default_sensitive = suggested_roles(frame)
 
     if data.source_url:
-        st.info(
-            f"Secondo caso reale: **{data.municipality}** pubblica dati già aggregati per zona e ora. "
-            "Watermark applica lo stesso motore, ma cambia il test in base all’unità della riga.",
-            icon=":material/location_city:",
+        st.caption(
+            f"Esempio ufficiale del Comune di {data.municipality}. Watermark adatta il controllo all’unità della riga."
         )
 
     with st.container(border=True):
-        st.subheader("Che cosa rappresenta una riga?", icon=":material/table_rows:")
+        st.subheader("Scopo del controllo", icon=":material/table_rows:")
         purpose_label = st.segmented_control(
             "Destinazione del file",
             ["Uso interno autorizzato", "Pubblicazione open data"],
@@ -54,7 +52,7 @@ def render(data: ActiveDataset) -> None:
         row_kind = "aggregato" if row_label == "Cella aggregata" else "individuale"
         st.caption("Suggerimento automatico: " + " ".join(inferred.reasons))
 
-    with st.expander("Conferma il significato delle colonne", icon=":material/tune:"):
+    with st.expander("Personalizza colonne e soglia", icon=":material/tune:"):
         st.caption("Il nome di una colonna è solo un indizio: il DPO o il responsabile del dato conferma i ruoli.")
         direct = st.multiselect(
             "Identificativi diretti da rimuovere",
@@ -125,15 +123,14 @@ def render(data: ActiveDataset) -> None:
     if log:
         st.caption("Interventi applicati: " + " · ".join(log))
 
-    with st.expander("Come sono state classificate le colonne", icon=":material/schema:"):
+    with st.expander("Metodo, colonne e fonte", icon=":material/schema:"):
         st.dataframe(audit.scan, hide_index=True, width="stretch")
-    if data.source_url:
-        st.markdown(f"[Apri il dataset ufficiale del Comune di {data.municipality}]({data.source_url})")
-    with st.expander("Perché il controllo è portabile", icon=":material/account_tree:"):
         st.markdown(
-            "La logica non cerca nomi fissati per Roma, Bologna o Milano. Prima inferisce se ogni riga descrive "
-            "un evento o una cella aggregata; poi il responsabile conferma identificativi, informazioni conoscibili, "
-            "dato da proteggere e soglia. I connettori caricano i file, mentre regole, incrocio e protezione restano "
-            "nello stesso motore `core/`. Un nuovo Comune richiede quindi una mappatura dello schema, non una "
-            "riscrittura dell’audit."
+            "**Perché è portabile.** Il motore inferisce granularità e ruoli delle colonne; il responsabile li conferma. "
+            "I connettori cambiano da ente a ente, mentre audit, incrocio e protezione restano gli stessi."
         )
+        if data.source_url:
+            st.link_button(
+                f"Apri la fonte del Comune di {data.municipality}", data.source_url,
+                icon=":material/open_in_new:",
+            )

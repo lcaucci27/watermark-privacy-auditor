@@ -1,92 +1,82 @@
-# Watermark: corrispondenza con i criteri della giuria
+# Mappa interna sui 50 punti della giuria
 
-Fonte dei criteri: [Guida ufficiale AI2B](https://ai2b.games/regolamento/guida) e [Regolamento, art. 8 bis e 8 ter](https://ai2b.games/regolamento).
+Questo file guida refinement, demo e risposte. Non trasformarlo in una slide con i cinque criteri: la giuria deve vedere le prove nel racconto, non una checklist.
 
-La giuria assegna fino a 10 punti per ciascuna delle cinque aree. L'obiettivo non è mostrare tutte le funzioni, ma una prova memorabile per criterio.
+## Aderenza al tema
 
-## 1. Aderenza al tema
+Bisogno reale: un Comune deve pubblicare dati utili senza esporre combinazioni riconoscibili. Il contesto territoriale è dimostrato con fonti ufficiali di Roma, Milano e Bologna. Il decisore è il DPO con responsabile open data e RTD.
 
-**Cosa chiede la giuria:** coerenza con la keyword e bisogno reale del territorio.
+Prova da mostrare: schermata Roma con il 99,5% di sessioni distinguibili e correzione proposta.
 
-**Nostra prova:** un Comune deve decidere se un flusso di telemetria smart-city dichiarato anonimo sia pubblicabile. Watermark misura individuazione, potenziale correlabilità e rischio cumulativo prima della diffusione.
+Frase: “Watermark controlla un open data prima che il Comune lo renda pubblico.”
 
-**Da mostrare:** pagina “Verifica”, badge “Da correggere”, 99,5% di sessioni individuabili.
+## Utilizzo dei dati
 
-**Claim:** “Aiutiamo il DPO comunale a fermare una pubblicazione rischiosa prima che diventi un incidente privacy.”
+I CSV alimentano direttamente ogni decisione. Watermark ricostruisce tempo e luogo, misura combinazioni rare, scopre il comportamento temporale di `LOGINCOUNT`, distingue eventi da aggregati e collega serie diverse.
 
-## 2. Utilizzo dei dati
+Prove:
 
-**Cosa chiede la giuria:** il dataset deve essere il cuore della logica; occorre estrarre valore nascosto.
+- Roma: 99,5% delle sessioni distinguibili con giorno, ora, sede e lingua.
+- Milano: 12.205 righe su 13.793 collegate una a una fra utenti e login usando giorno e zona.
+- Bologna: 5.000 celle orarie collegate all’anagrafica di 76 aree tramite `codice_zona ↔ id`.
+- Gravità CSIRT: TF-IDF ottiene 0,743 di accuratezza bilanciata contro 0,685 degli embedding.
 
-**Nostra prova:** il sistema legge i CSV ufficiali, ricostruisce timestamp e sedi, misura il k-anonimato, individua automaticamente colonne intere ad alta cardinalità e verifica il loro ordinamento temporale. LOGINCOUNT è presente nei dati ma assente dalla documentazione del catalogo.
+Interpretazione da mantenere: un record raro o collegato non equivale automaticamente a una persona identificata.
 
-**Prove quantitative principali:**
+## Originalità e innovazione
 
-- giorno e orario al secondo isolano il 96,1% delle sessioni;
-- giorno, ora, sede e lingua isolano il 99,5%;
-- ordine di LOGINCOUNT: 92,7% medio su 13 giorni contro 49,5% permutato;
-- Wilcoxon appaiato sui giorni: p = 0,00012;
-- continuità tra giorni consecutivi: 32,1% contro 9,3% permutato;
-- test a permutazione: p ≈ 0,002 con 500 permutazioni;
-- solo 7 sedi su 64 hanno un forte trend crescente: non è spiegato come semplice contatore di sede.
+L’elemento distintivo non è un chatbot. Watermark cerca filigrane statistiche e rischi di composizione che restano dopo la rimozione di nomi ed e-mail. Il secondo dataset rende esplicita la conoscenza dell’attaccante. Il motore adatta il test a eventi individuali, celle aggregate e colonne equivalenti con nomi diversi.
 
-**Da mostrare:** curva “informazioni conosciute → sessioni individuabili” e pannello “Validazione statistica”.
+Prova da mostrare: schermata `Incrocia` su Milano e, nelle domande, mapping Bologna `codice_zona ↔ id`.
 
-## 3. Originalità e innovazione
+## Funzionalità e integrazione
 
-**Cosa chiede la giuria:** idea distinta e uso creativo dell'AI.
-
-**Nostra prova:** Watermark non cerca soltanto nomi, e-mail o codici fiscali. Cerca “filigrane” statistiche: colonne apparentemente innocue che conservano memoria e possono rendere collegabili le righe. Il nome del prodotto rappresenta precisamente questa funzione.
-
-**Elemento memorabile:** il campo non documentato viene scoperto dai valori e dal tempo, non da una blacklist di nomi di colonna.
-
-## 4. Funzionalità, AI e integrazione
-
-**Cosa chiede la giuria:** flusso funzionante, UX fluida, AI reale e adattiva.
-
-**Nostro flusso completo:**
+Percorso funzionante:
 
 ```text
-CSV pubblico → preprocessing → scoperta del rischio → validazione statistica
-→ ricerca semantica su CSIRT/Garante → correzione → CSV e rapporto scaricabili
+selezione fonte
+controllo privacy
+incrocio con secondo dataset
+correzione o soppressione
+rapporto scaricabile
+spiegazione locale opzionale
 ```
 
-**Dove si trova l'AI:**
+L’IA ha ruoli verificabili:
 
-- il rilevatore analizza automaticamente tutte le colonne intere candidate, non soltanto LOGINCOUNT;
-- il modello di utilità apprende quanto traffico resta stimabile nelle 36 trasformazioni privacy;
-- il classificatore CSIRT stima l'impatto dei bollettini su dati temporalmente successivi;
-- l'assistente locale interpreta la domanda e seleziona gli strumenti;
-- la ricerca semantica recupera passaggi pertinenti del Garante con fonte visibile.
+- TF-IDF classifica l’impatto CSIRT perché supera gli embedding nel test temporale.
+- BGE-M3 recupera passaggi semanticamente vicini nelle fonti.
+- Qwen 2.5 3B riscrive risultati già calcolati in JSON; guardrail controllano numeri e citazioni.
+- Il fallback deterministico mantiene l’app utilizzabile senza Ollama.
 
-Il classificatore CSIRT è valutato con separazione temporale: addestramento fino al 3 agosto 2026, test sui 195 bollettini successivi, accuratezza bilanciata 0,743 contro 0,333 della classe più frequente. Questa è la metrica ML da citare quando la giuria domanda dove sia l'AI.
+Prova da mostrare: badge dell’esito, confronto Milano già configurato e download della valutazione. Tenere l’assistente come screenshot di supporto, non come centro della demo.
 
-**Rischio da evitare nel pitch:** presentare come AI un semplice p-value. La statistica prova la falla; l'AI orchestra la scoperta, confronta correzioni e collega fonti diverse.
+## Qualità della presentazione
 
-## 5. Qualità della presentazione
+Il pitch dura 180 secondi. Ogni slide ha una tesi, una prova visiva e una frase operativa. Gli screenshot reali sostituiscono una demo live fragile. Il deck include problema, prova Roma, architettura IA, incrocio Milano, portabilità e proposta commerciale.
 
-**Cosa chiede la giuria:** chiarezza, pitch breve e risposte tecniche/business.
+I placeholder e le istruzioni per Claude PowerPoint sono in `docs/CLAUDE_POWERPOINT_PROMPTS.md`; la sequenza degli screenshot è in `docs/DEMO_SCREENSHOT_PLAN.md`.
 
-**Percorso consigliato, massimo cinque minuti:**
+## Committente e utilità aziendale
 
-1. **Problema, 30 secondi:** aprire il CSV ufficiale e indicare LOGINCOUNT non documentato.
-2. **Prova, 60 secondi:** mostrare 99,5%, 92,7% contro 49,5% e continuità 32,1% contro 9,3%.
-3. **Prodotto, 90 secondi:** eseguire “Verifica”, mostrare una domanda all'assistente e generare il rapporto.
-4. **Azione, 45 secondi:** scaricare il CSV aggregato con k ≥ 5.
-5. **Limite, 20 secondi:** la semantica di LOGINCOUNT deve essere confermata da Roma Capitale; nessuna persona è stata identificata.
+Committente contrattuale: Comune, Città metropolitana, società in-house o gestore di servizio pubblico. Sponsor: DPO. Buyer economico: Direzione innovazione, Segreteria generale o RTD. Utenti: DPO, open data officer e data steward.
 
-## Risposta pronta alla domanda più difficile
+Utilità:
 
-**“Avete dimostrato che LOGINCOUNT identifica l'utente?”**
+- impedire una pubblicazione rischiosa prima che diventi un incidente;
+- ridurre verifiche manuali ripetitive;
+- produrre una motivazione riutilizzabile nell’istruttoria;
+- applicare la stessa policy a più uffici e cataloghi;
+- mantenere file e modelli nel perimetro tecnico dell’ente.
 
-No. Abbiamo dimostrato tre proprietà più limitate ma operative: non è casuale, non si comporta come un contatore della sede e conserva continuità nel tempo molto oltre l'atteso sotto permutazione. Questo basta per sospendere il campo e chiedere il data dictionary; non basta per attribuire sessioni a persone reali.
+Offerta iniziale: pilot di 8–12 settimane su tre dataset, €12–25 mila, con audit, policy pack e integrazione. Prezzo da validare con procurement e interviste.
 
-## Valutazione onesta dello stato
+## Domande difficili
 
-| Criterio | Stato | Rischio residuo |
-|---|---|---|
-| Tema | Forte | Esplicitare subito utente e decisione |
-| Dati | Molto forte | Non sovrainterpretare LOGINCOUNT |
-| Originalità | Forte | Far vedere la scoperta automatica, non solo raccontarla |
-| Funzionalità/AI | Buono | Mostrare almeno una funzione ML adattiva durante la demo |
-| Presentazione | Buono | Cronometrare e tenere gli strumenti avanzati fuori dal percorso principale |
+**Avete identificato persone?** No. Misuriamo distinguibilità e collegabilità sotto ipotesi dichiarate.
+
+**È un fine-tuning?** No. Qwen 2.5 3B usa istruzioni di dominio, schema JSON, retry e guardrail. Un LoRA richiede prima casi annotati da DPO.
+
+**È hardcoded sui tre Comuni?** No. I cataloghi e i mapping sono adattatori; granularità, ruoli delle colonne, k-anonimato, small-cell check e collegabilità vivono nel motore comune.
+
+**Serve un database?** Non per la demo locale. Il prodotto multi-ente richiede PostgreSQL per utenti, policy versionate, approvazioni e audit trail.

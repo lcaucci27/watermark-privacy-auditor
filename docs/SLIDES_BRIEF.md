@@ -61,15 +61,15 @@ GDPR art. 5 · Garante privacy, Trasparenza online.
 
 ### Struttura precisa
 
-- Numero `99,5%` alto almeno 110 pt in corallo, a sinistra.
-- Destra: 200 punti, quasi tutti isolati; un gruppo minuscolo acquamarina.
-- Sotto al numero: quattro etichette molto brevi, unite visivamente come una chiave.
+- Griglia 35/65.
+- A sinistra, numero `99,5%` alto almeno 96 pt in corallo e chiave `giorno + ora + sede + lingua`.
+- A destra, screenshot reale `[SCREENSHOT_VERIFICA_ROMA]` con due callout sul badge e sul grafico di rarità.
 - Fascia inferiore acquamarina chiaro con la distinzione metodologica.
 
 ### Prompt della slide
 
 ```text
-Create slide 2 of the same 16:9 Watermark deck. Exact palette: ivory #F7F3E8, charcoal #17282B, deep teal #1F6B69, pale teal #D9EBE7, coral #A63F2E, muted gold #B3872C. Keep the title top-left. Build a 45/55 layout: left side reserved for a huge coral 99.5% figure at least 110 pt and four short labels below; right side contains an orderly field of two hundred small marks, almost all coral and isolated, with one tiny teal group. Add a full-width pale-teal band along the bottom for one methodological sentence. The image must communicate rarity at a glance to a non-technical executive. Flat publication-quality information design, high contrast, generous whitespace, no chart axes, no mini dashboard, no generated text inside the visual, no gradients or decoration. Footer source area in charcoal.
+Create slide 2 of the same 16:9 Watermark deck. Exact palette: ivory #F7F3E8, charcoal #17282B, deep teal #1F6B69, pale teal #D9EBE7, coral #A63F2E, muted gold #B3872C. Keep the title top-left and use a 35/65 layout. Reserve the left side for a huge coral 99.5% figure, the four-field combination and the statement that distinguishable does not mean identified. On the right keep a dominant frame labelled [SCREENSHOT_VERIFICA_ROMA]. Reserve only two callouts, [CALLOUT_BADGE_DA_CORREGGERE] and [CALLOUT_GRAFICO_RARITA]. Do not recreate the interface. Add a narrow source footer and keep the composition legible to a non-technical executive. High contrast, generous whitespace, no extra dashboard, no gradients or decoration.
 ```
 
 ### Discorso · 28 secondi
@@ -84,11 +84,11 @@ Elaborazione Watermark sul campione RomaWiFi · `LOGINCOUNT`: **[SEMANTICA DA CO
 
 ### Titolo
 
-**L’IA spiega la decisione; i controlli verificabili la producono**
+**Controlli verificabili e spiegazione locale**
 
 ### Testo visibile
 
-`CSV → regole privacy → test di collegabilità → risposta DPO`
+`CSV, regole privacy, collegabilità, risposta DPO`
 
 `Locale · strutturata · con fallback`
 
@@ -99,11 +99,12 @@ Elaborazione Watermark sul campione RomaWiFi · `LOGINCOUNT`: **[SEMANTICA DA CO
 - Sotto il modulo LLM: `Qwen 2.5 3B locale`.
 - Tre micro-annotazioni: `JSON vincolato`, `numeri verificati`, `fonti preservate`.
 - Nessuna riga grezza disegnata dentro il modello linguistico.
+- Ritaglio `[SCREENSHOT_ASSISTENTE_LOCALE]` a destra, solo se resta leggibile.
 
 ### Prompt della slide
 
 ```text
-Create slide 3 of the same premium 16:9 Watermark deck. Exact palette on every element: ivory #F7F3E8 background, charcoal #17282B text and lines, deep teal #1F6B69 product engine, pale teal #D9EBE7 secondary layer, coral #A63F2E only for rejected output, muted gold #B3872C for the final human decision. Use one horizontal technical flow occupying the middle sixty percent: CSV schema inspection, deterministic privacy rules, linkage test, small local language-model explanation, human DPO decision. Make the deterministic rules engine visibly larger than the language-model module. Show raw rows stopping before the language model; only a compact verified-results sheet enters it. Reserve three small callout positions for structured JSON, number validation and source preservation. Flat precise architecture diagram, not a collection of cards, no cloud icon, no brain, no robot, no code wallpaper, no generated text in the illustration, no gradients, no 3D. Title at top-left and source footer.
+Create slide 3 of the same premium 16:9 Watermark deck. Exact palette on every element: ivory #F7F3E8 background, charcoal #17282B text and lines, deep teal #1F6B69 product engine, pale teal #D9EBE7 secondary layer, coral #A63F2E only for rejected output, muted gold #B3872C for the final human decision. Use the left seventy percent for one horizontal technical flow: CSV schema inspection, deterministic privacy rules, linkage test, small local language-model explanation and human DPO decision. Make the deterministic rules engine visibly larger than the language-model module. Show raw rows stopping before the language model; only a compact verified-results sheet enters it. Reserve three small callout positions for structured JSON, number validation and source preservation. In the right thirty percent keep a frame labelled [SCREENSHOT_ASSISTENTE_LOCALE] with one callout on the stated limitation. Flat precise architecture, no card grid, no cloud icon, no brain, no robot, no code wallpaper, no generated text in the illustration, no gradients, no 3D. Title at top-left and source footer.
 ```
 
 ### Discorso · 33 secondi
@@ -133,7 +134,7 @@ Modello locale prompt-specializzato, non fine-tuning dei pesi · embedding solo 
 - Screenshot vero dell’app al 70% della slide, a destra.
 - Colonna sinistra con tre passi numerati e non più di sei parole per passo.
 - Evidenziare un solo esito, una sola metrica e un solo download.
-- Piccolo riquadro in basso: Milano, `Data + Zona`, `144 match univoci su 1.000`.
+- Piccolo riquadro in basso: Milano, `Giorno + Zona`, `12.205 collegamenti uno a uno su 13.793`.
 - Etichetta corallo: `collegabile`; etichetta antracite: `non identificato`.
 
 ### Prompt della slide
@@ -144,15 +145,14 @@ Create slide 4 of the same 16:9 Watermark deck for a live product demo. Exact pa
 
 ### Discorso e azioni · 40 secondi
 
-> Prima dichiaro lo scopo: uso interno o pubblicazione. Identificare un utente per erogare un servizio non è automaticamente un errore; servono base giuridica, accessi per ruolo e cancellazione. Per l’open data, Watermark controlla unicità e celle sotto cinque. Poi carico un secondo dataset. Nell’esempio Milano, utenti e login condividono Data e Zona: 144 righe su mille trovano un solo record, ma senza un identificativo restano collegate, non attribuite a una persona. Infine scarico file protetto e rapporto.
+> Prima dichiaro lo scopo: uso interno o pubblicazione. Identificare un utente per erogare un servizio non è automaticamente un errore. Per l’open data, Watermark controlla unicità e celle sotto cinque. Nell’esempio Milano, utenti e login condividono giorno e zona: 12.205 righe su 13.793 trovano un solo record. Il file aggiunge informazioni sul periodo e sull’area, ma non attribuisce una persona. Infine scarico la valutazione.
 
 ### Sequenza demo
 
 1. Aprire Bologna e mostrare `Compatibile con pubblicazione` per un aggregato senza celle piccole.
 2. Aprire Milano.
-3. In `Incrocia`, caricare `data/milano_wifi_login_sample.csv`.
-4. Lasciare selezionate `Zona + Data`.
-5. Mostrare `14,4%`, poi la frase “non attribuisce ancora un’identità”.
+3. Aprire `Incrocia`: il file login viene caricato automaticamente.
+4. Mostrare `88,5%`, poi la frase “non identifica una persona”.
 
 ### Fonte footer
 
@@ -174,21 +174,21 @@ Comune di Milano, OpenWifiMilano: utenti unici e login giornalieri per zona.
 
 ### Struttura precisa
 
-- Tre input diversi a sinistra convergono in un nucleo Watermark.
-- A destra, stack di produzione: API, PostgreSQL, object storage cifrato, worker, OIDC/RBAC.
-- Badge piccolo: `16 test automatici passati`.
+- A sinistra, ritaglio `[SCREENSHOT_VERIFICA_BOLOGNA]` con l'esito e il tipo `Cella aggregata`.
+- A destra, tre schemi comunali convergono nel motore comune; sotto compare lo stack API, PostgreSQL, storage cifrato, worker e OIDC/RBAC.
+- Badge piccolo: `test automatici verdi`.
 - Badge piccolo: `LLM locale 4/4 casi di accettazione`.
 - Evidenziare che Streamlit è console del pilot, non intera architettura enterprise.
 
 ### Prompt della slide
 
 ```text
-Create slide 5 of the same corporate 16:9 Watermark deck. Exact palette: ivory #F7F3E8 background, charcoal #17282B text and outlines, deep teal #1F6B69 core product, pale teal #D9EBE7 infrastructure layers, coral #A63F2E only for a blocked unsafe release, muted gold #B3872C for validated capabilities. Use a 55/45 composition. Left: three visually different datasets representing event rows, aggregate cells and a second linked table converge into one Watermark policy engine. Right: a clean vertical production stack showing API, PostgreSQL metadata, encrypted object storage, asynchronous worker and OIDC/RBAC, with the pilot interface as the top console rather than the whole system. Reserve two small gold evidence badges. Precise enterprise architecture aesthetic, one coherent composition, no disconnected card grid, no cloud-provider logos, no fake certification marks, no generated text in the diagram, no gradients, no 3D. Title top-left, footer at bottom.
+Create slide 5 of the same corporate 16:9 Watermark deck. Exact palette: ivory #F7F3E8 background, charcoal #17282B text and outlines, deep teal #1F6B69 core product, pale teal #D9EBE7 infrastructure layers, coral #A63F2E only for a blocked unsafe release, muted gold #B3872C for validated capabilities. Use a 40/60 composition. On the left keep a real-software frame labelled [SCREENSHOT_VERIFICA_BOLOGNA] with callouts on the aggregate-cell setting and outcome. On the right, show three different schemas, event rows, aggregate cells and area series, entering one Watermark engine. Below them show API, PostgreSQL metadata and audit trail, encrypted object storage, asynchronous workers and OIDC/RBAC. Reserve two small gold evidence badges. Precise enterprise architecture aesthetic, one coherent composition, no card grid, no cloud-provider logos, no fake certification marks, no generated text in the diagram, no gradients, no 3D. Title top-left, footer at bottom.
 ```
 
 ### Discorso · 30 secondi
 
-> La portabilità è già provata su tre schemi reali: eventi individuali a Roma, aggregati a Bologna e serie per zona a Milano. Per venderlo, Streamlit resta la console del pilot; sotto servono API, PostgreSQL per policy e audit trail, storage cifrato, job asincroni e accesso per ruolo. Il prototipo ha sedici test automatici. Il flusso locale ha superato quattro casi di accettazione, compresi uso interno, citazioni e dati aggregati.
+> La portabilità è già provata su tre schemi reali: eventi individuali a Roma, aggregati a Bologna e serie per zona a Milano. Per venderlo, Streamlit resta la console del pilot. Il prodotto aggiunge API, PostgreSQL per policy e audit trail, storage cifrato, job asincroni e accesso per ruolo. La suite automatica copre anche gli incroci ufficiali; il flusso locale ha superato quattro casi di accettazione.
 
 ### Fonte footer
 

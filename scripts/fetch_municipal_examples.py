@@ -22,7 +22,7 @@ MILANO_DATASETS = {
 }
 
 
-def fetch_bologna(limit: int = 2000, page_size: int = 100) -> pd.DataFrame:
+def fetch_bologna(limit: int = 5000, page_size: int = 100) -> pd.DataFrame:
     rows: list[dict] = []
     for offset in range(0, limit, page_size):
         query = urllib.parse.urlencode({"limit": min(page_size, limit - offset), "offset": offset, "order_by": "data desc"})
@@ -37,14 +37,17 @@ def fetch_bologna(limit: int = 2000, page_size: int = 100) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def fetch_milano(dataset_id: str, limit: int = 1000) -> pd.DataFrame:
+def fetch_milano(dataset_id: str) -> pd.DataFrame:
     """Risolve la risorsa CSV corrente via CKAN, senza fissare il nome datato del file."""
     with urllib.request.urlopen(MILANO_API.format(dataset_id), timeout=30) as response:
         resources = json.load(response)["result"]["resources"]
     csv_url = next(resource["url"] for resource in resources if resource.get("format", "").upper() == "CSV")
     with urllib.request.urlopen(csv_url, timeout=60) as response:
         raw = response.read()
-    return pd.read_csv(BytesIO(raw), sep=";").head(limit)
+    frame = pd.read_csv(BytesIO(raw), sep=";")
+    # Il portale descrive la serie come giornaliera, ma conserva orari tecnici diversi negli anni.
+    frame["Giorno"] = frame["Data"].astype("string").str.slice(0, 10)
+    return frame
 
 
 def fetch_bologna_areas() -> pd.DataFrame:

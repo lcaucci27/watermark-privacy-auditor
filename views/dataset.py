@@ -8,21 +8,14 @@ from io import BytesIO
 import pandas as pd
 import streamlit as st
 
+from core.municipal_catalog import PRIMARY_BY_LABEL, PRIMARY_SOURCES, ROMA_WIFI
 from core.wifi_dataset import is_wifi_dataset, prepare
 from views.shared import WIFI_FILE, load_wifi
 
-EXAMPLE = "Roma · sessioni WiFi"
-BOLOGNA = "Bologna · affollamento"
-MILANO = "Milano · utenti WiFi"
+EXAMPLE = ROMA_WIFI.short_label
+BOLOGNA = PRIMARY_SOURCES[1].short_label
+MILANO = PRIMARY_SOURCES[2].short_label
 UPLOAD = "Carica CSV"
-ROMA_NAME = "WiFi Roma Capitale · ultimi 14 giorni"
-BOLOGNA_NAME = "WiFi Bologna · affollamento aggregato"
-MILANO_NAME = "WiFi Milano · utenti unici per zona"
-BOLOGNA_FILE = WIFI_FILE.parent / "bologna_wifi_affollamento_sample.csv"
-MILANO_FILE = WIFI_FILE.parent / "milano_wifi_utenti_sample.csv"
-ROMA_URL = "https://dati.comune.roma.it/catalog/dataset/wifi2026"
-BOLOGNA_URL = "https://opendata.comune.bologna.it/explore/dataset/iperbole-wifi-affollamento/"
-MILANO_URL = "https://dati.comune.milano.it/dataset/ds917-openwifimilano-uniqueuserzone"
 
 
 @dataclass
@@ -34,6 +27,7 @@ class ActiveDataset:
     row_kind_hint: str | None = None
     municipality: str | None = None
     source_url: str | None = None
+    source_key: str | None = None
 
 
 @st.cache_data(show_spinner="Lettura del file…", max_entries=5)
@@ -48,9 +42,9 @@ def _read_upload(raw: bytes) -> tuple[pd.DataFrame, bool, int]:
 def sidebar_picker() -> ActiveDataset | None:
     with st.sidebar:
         st.subheader("Dataset da verificare", icon=":material/dataset:")
-        source = st.segmented_control(
-            "Origine", [EXAMPLE, BOLOGNA, MILANO, UPLOAD], default=EXAMPLE, required=True, key="dataset_source",
-            label_visibility="collapsed",
+        source = st.selectbox(
+            "Origine", [item.short_label for item in PRIMARY_SOURCES] + [UPLOAD],
+            index=0, key="dataset_source", label_visibility="collapsed",
         )
         if source == UPLOAD:
             uploaded = st.file_uploader("File CSV", type=["csv"], key="dataset_upload")
@@ -60,31 +54,28 @@ def sidebar_picker() -> ActiveDataset | None:
             frame, is_wifi, removed = _read_upload(uploaded.getvalue())
             name = uploaded.name
             return ActiveDataset(name, frame, is_wifi, removed)
-        if source == BOLOGNA:
-            if not BOLOGNA_FILE.exists():
+        selected = PRIMARY_BY_LABEL[source]
+        if selected.key != ROMA_WIFI.key:
+            if not selected.path.exists():
                 st.warning(
                     "Esempio non scaricato: esegui `python scripts/fetch_municipal_examples.py`.",
                     icon=":material/download:",
                 )
                 return None
-            frame = pd.read_csv(BOLOGNA_FILE)
+            frame = pd.read_csv(selected.path)
             st.caption(f"{len(frame):,} righe · {len(frame.columns)} colonne")
-            return ActiveDataset(BOLOGNA_NAME, frame, False, 0, "aggregato", "Bologna", BOLOGNA_URL)
-        if source == MILANO:
-            if not MILANO_FILE.exists():
-                st.warning(
-                    "Esempio non scaricato: esegui `python scripts/fetch_municipal_examples.py`.",
-                    icon=":material/download:",
-                )
-                return None
-            frame = pd.read_csv(MILANO_FILE)
-            st.caption(f"{len(frame):,} righe · {len(frame.columns)} colonne")
-            return ActiveDataset(MILANO_NAME, frame, False, 0, "aggregato", "Milano", MILANO_URL)
+            return ActiveDataset(
+                selected.name, frame, False, 0, selected.row_kind, selected.municipality,
+                selected.url, selected.key,
+            )
         else:
             if not WIFI_FILE.exists():
                 st.warning("Esempio non scaricato: esegui `python scripts/fetch_data.py`.", icon=":material/download:")
                 return None
             frame, removed = load_wifi(WIFI_FILE.read_bytes())
-            is_wifi, name = True, ROMA_NAME
+            is_wifi, name = True, selected.name
         st.caption(f"{len(frame):,} righe · {len(frame.columns)} colonne")
-    return ActiveDataset(name, frame, is_wifi, removed, "individuale", "Roma", ROMA_URL)
+    return ActiveDataset(
+        name, frame, is_wifi, removed, selected.row_kind, selected.municipality,
+        selected.url, selected.key,
+    )

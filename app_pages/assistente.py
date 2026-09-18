@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from core import llm, local_ai
+from core import local_ai
 from core.assistant import IntentRouter
 from views.assistant_answers import ANSWERS
 from views.dataset import sidebar_picker
@@ -30,20 +30,22 @@ def router() -> IntentRouter:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+
+def reset_agent() -> None:
+    """Apre una conversazione pulita senza cambiare dataset o modello selezionato."""
+    st.session_state.messages = []
+    st.session_state.pop("suggestion", None)
+
 data = sidebar_picker()
-NO_LLM = "Risultati calcolati · più rapido"
-CLAUDE = "Claude (cloud, facoltativo)"
+LOCAL_CHAT = "Watermark · chatbot locale"
+NO_LLM = "Solo risultati calcolati"
 
 
 @st.cache_data(ttl=30, show_spinner=False)
 def language_models() -> list[str]:
     installed = local_ai.installed_models()
-    local = [
-        f"{name} · locale"
-        for name in local_ai.CHAT_MODELS
-        if name in installed or f"{name}:latest" in installed
-    ]
-    return [NO_LLM] + local + ([CLAUDE] if llm.available() else [])
+    available = local_ai.SPECIALIZED_MODEL in installed
+    return [LOCAL_CHAT, NO_LLM] if available else [NO_LLM]
 
 
 with st.sidebar:
@@ -52,29 +54,26 @@ with st.sidebar:
         "Chi scrive le risposte", language_models(), key="writer", label_visibility="collapsed",
         help="I modelli locali girano con Ollama su questo computer. Ricevono solo la domanda e i risultati aggregati.",
     )
-    if writer == NO_LLM:
-        st.caption("Risposta immediata · modelli calcolati su questo computer")
-    elif writer == CLAUDE:
-        st.caption("Claude riceve solo domanda e risultati aggregati")
+    if writer == LOCAL_CHAT:
+        st.caption("Qwen 2.5 3B · nessun dato lascia il computer")
     else:
-        st.caption("LLM locale · nessun dato lascia il computer")
-
-
-if not st.session_state.messages:
-    st.title("Il tuo dataset è davvero anonimo?")
-    st.markdown(
-        "Watermark è l'assistente del DPO comunale prima di pubblicare open data. "
-        "Fai una domanda in italiano: l'IA sceglie i controlli, li esegue su questo computer e ti risponde."
+        st.caption("Risposta immediata senza chatbot")
+    st.button(
+        "Pulisci e riavvia", icon=":material/restart_alt:", width="stretch",
+        disabled=not st.session_state.messages, on_click=reset_agent,
+        help="Cancella la cronologia di questa sessione e apre una nuova conversazione.",
     )
-    with st.container(horizontal=True):
-        for icon, title, text in (
-            (":material/fingerprint:", "Verifica", "Trova le persone riconoscibili e le colonne che fanno da pseudonimo."),
-            (":material/auto_fix_high:", "Correggi", "Prova 36 versioni del file e sceglie quella che conserva più informazione."),
-            (":material/shield:", "Proteggi", "Collega bollettini CSIRT e provvedimenti del Garante ai sistemi coinvolti."),
-        ):
-            with st.container(border=True):
-                st.markdown(f"**{icon} {title}**")
-                st.caption(text)
+
+st.title("Chiedi a Watermark", icon=":material/forum:")
+st.caption("L'agente sceglie il controllo adatto, lo esegue sui dati e spiega esito, azione e limite.")
+with st.expander("Cosa fa e cosa puoi chiedere", icon=":material/help:"):
+    st.markdown(
+        "Watermark riconosce l'intento della domanda e usa controlli verificabili per valutare pubblicazione, "
+        "correzioni, minacce, riferimenti del Garante e statistiche. Il modello linguistico serve soltanto a "
+        "riscrivere i risultati aggregati in modo chiaro: non decide l'esito e non riceve le righe grezze.\n\n"
+        "**Esempi:** «Questo dataset è pubblicabile?», «Correggilo sotto il 15%», "
+        "«Quali sistemi sono a rischio?», «Cosa dice il Garante?»."
+    )
 if data is None:
     st.info("Scegli o carica un dataset nella barra laterale.", icon=":material/arrow_back:")
     st.stop()
@@ -114,18 +113,10 @@ if prompt:
     }
     with st.chat_message("assistant", avatar=":material/policy:"):
         summary = answer(message, replay=False)
-        if writer.endswith("· locale"):
-            model_name = writer.split(" · ")[0]
-            st.markdown(f":violet-badge[:material/neurology: Scritto da {model_name} sul tuo computer]")
-            message["rewritten"] = st.write_stream(local_ai.chat_stream(prompt, summary, model_name))
-            message["writer"] = model_name
-        elif writer == CLAUDE:
-            with st.spinner("Claude scrive la risposta…"):
-                message["rewritten"] = llm.rewrite(prompt, summary)
-            message["writer"] = "Claude"
-            if message.get("rewritten"):
-                st.markdown(":violet-badge[:material/auto_awesome: Scritto da Claude]")
-                st.markdown(message["rewritten"])
-            else:
-                st.caption("Claude non disponibile: resta la risposta calcolata.")
+        if writer == LOCAL_CHAT:
+            st.markdown(":violet-badge[:material/neurology: Scritto da Watermark sul tuo computer]")
+            message["rewritten"] = st.write_stream(
+                local_ai.chat_stream(prompt, summary, local_ai.SPECIALIZED_MODEL)
+            )
+            message["writer"] = "Watermark locale"
     st.session_state.messages.append(message)

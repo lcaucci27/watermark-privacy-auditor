@@ -159,7 +159,7 @@ Prima del pitch: avviare l'app e fare una volta "Correggilo" per popolare la cac
 - `core/assistant.py`: intenzioni per significato (vicino più simile, soglia 0,55) con ricaduta su n-grammi.
 - `core/threat_model.py`: `compare_models` (TF-IDF contro embedding sullo stesso split temporale), `train_semantic`/`predict_semantic` con bollettini storici più simili come spiegazione.
 - Garante diviso in passaggi di ~700 caratteri: la ricerca restituisce direttamente citazioni (RAG locale).
-- Nella chat, barra laterale "Modello linguistico": risultati calcolati (default, immediato), qwen2.5:3b, qwen2.5:7b e Claude se c'è la chiave. Sul computer Windows di prova una risposta ha richiesto 30,6 s con 3B e 62,2 s con 7B, quindi Qwen resta facoltativo nella demo.
+- Nella chat, barra laterale "Modello linguistico": `Watermark · chatbot locale` quando Ollama è pronto, oppure `Solo risultati calcolati`. Le varianti Qwen 3B base e 7B restano disponibili soltanto nello script di benchmark.
 
 **Analisi statistica** (`core/stats_analysis.py`, pagina `app_pages/analisi.py`), metodi del corso di performance analysis:
 - Descrittiva: DURATION media 4.801 s, mediana 288 s, asimmetria 2,5 → si usano mediana e SIQR.

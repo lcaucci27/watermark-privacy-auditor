@@ -21,7 +21,7 @@ Note relatore, 24 s:
 ## 2 · Prova Roma
 
 ```text
-Crea la slide 2 con palette esatta #F7F3E8, #17282B, #1F6B69, #D9EBE7, #A63F2E, #B3872C e layout 45/55. Titolo: “Nel campione Roma, il 99,5% delle sessioni è distinguibile”. A sinistra mostra “99,5%” in corallo, almeno 110 pt; sotto scrivi “giorno + ora + sede + lingua”. A destra inserisci una griglia pulita di 200 punti quasi tutti corallo e isolati, con un piccolo gruppo acquamarina. In una fascia #D9EBE7 in basso scrivi “Distinguibile non significa identificata”. Inserisci [FONTE_ROMA_WIFI] nel footer e “[SEMANTICA LOGINCOUNT DA CONFERMARE]” in 11 pt. Niente assi, legende o grafici aggiuntivi.
+Crea la slide 2 con palette esatta #F7F3E8, #17282B, #1F6B69, #D9EBE7, #A63F2E, #B3872C e layout 35/65. Titolo: “Nel campione Roma, il 99,5% delle sessioni è distinguibile”. A sinistra mostra “99,5%” in corallo, almeno 96 pt; sotto scrivi “giorno + ora + sede + lingua” e “Distinguibile non significa identificata”. A destra lascia un frame dominante etichettato [SCREENSHOT_VERIFICA_ROMA]. Prepara due callout, [CALLOUT_BADGE_DA_CORREGGERE] e [CALLOUT_GRAFICO_RARITA]. Inserisci [FONTE_ROMA_WIFI] nel footer e “[SEMANTICA LOGINCOUNT DA CONFERMARE]” in 11 pt. Non ricreare l’interfaccia: mantieni il placeholder finché non ricevi lo screenshot.
 ```
 
 Note relatore, 28 s:
@@ -31,7 +31,7 @@ Note relatore, 28 s:
 ## 3 · Prodotto e IA
 
 ```text
-Crea la slide 3 con palette esatta #F7F3E8, #17282B, #1F6B69, #D9EBE7, #A63F2E, #B3872C. Titolo: “L’IA spiega la decisione; i controlli verificabili la producono”. Al centro costruisci un unico flusso orizzontale: “CSV” poi “Regole privacy” poi “Test di collegabilità” poi “Qwen 2.5 3B locale” poi “Decisione DPO”. Rendi il blocco regole più grande del blocco LLM. Mostra che al modello entrano soltanto risultati verificati, non righe grezze. Sotto inserisci tre annotazioni: “JSON vincolato”, “numeri verificati”, “fonti preservate”. Una risposta scartata va in corallo e confluisce nel testo “fallback calcolato”. Footer: “Prompt-specializzato, non fine-tuning dei pesi · embedding solo per ricerca”. Usa un solo diagramma coerente, non card separate.
+Crea la slide 3 con palette esatta #F7F3E8, #17282B, #1F6B69, #D9EBE7, #A63F2E, #B3872C. Titolo: “Controlli verificabili e spiegazione locale”. Usa il 70% della larghezza per un unico flusso orizzontale: “CSV”, “Regole privacy”, “Test di collegabilità”, “Qwen 2.5 3B locale”, “Decisione DPO”. Usa connessioni lineari senza frecce testuali. Rendi il blocco regole più grande del blocco LLM. Mostra che al modello entrano soltanto risultati verificati. Nel 30% destro lascia [SCREENSHOT_ASSISTENTE_LOCALE], con un solo callout sul limite dichiarato. Sotto inserisci “JSON vincolato”, “numeri verificati” e “fonti preservate”. Footer: “Prompt specializzato, non fine-tuning dei pesi. Embedding solo per ricerca”.
 ```
 
 Note relatore, 33 s:
@@ -41,22 +41,22 @@ Note relatore, 33 s:
 ## 4 · Demo e utilità pratica
 
 ```text
-Crea la slide 4 con palette esatta #F7F3E8, #17282B, #1F6B69, #D9EBE7, #A63F2E, #B3872C e layout 30/70. Titolo: “In meno di un minuto il DPO vede rischio, incrocio e correzione”. A sinistra tre passi grandi: “1 Dichiara lo scopo”, “2 Verifica e incrocia”, “3 Scarica file e rapporto”. A destra lascia un frame dominante etichettato [SCREENSHOT_VERIFICA_BOLOGNA_O_INCROCIO_MILANO]. Sul frame prepara solo tre callout: [CALLOUT_ESITO], [CALLOUT_14_4_PERCENTO], [CALLOUT_DOWNLOAD]. Nella fascia inferiore scrivi: “Milano · Data + Zona · 144 match univoci su 1.000” e accanto “collegabile ≠ identificato”. Footer: “Comune di Milano · OpenWifiMilano”. Non creare una UI fittizia: mantieni il placeholder finché non ricevi lo screenshot reale.
+Crea la slide 4 con palette esatta #F7F3E8, #17282B, #1F6B69, #D9EBE7, #A63F2E, #B3872C e layout 30/70. Titolo: “In meno di un minuto il DPO vede rischio, incrocio e correzione”. A sinistra tre passi grandi: “1 Dichiara lo scopo”, “2 Verifica e incrocia”, “3 Scarica la valutazione”. A destra lascia un frame dominante etichettato [SCREENSHOT_INCROCIO_MILANO]. Sul frame prepara solo tre callout: [CALLOUT_88_5_PERCENTO], [CALLOUT_NON_IDENTIFICA], [CALLOUT_DOWNLOAD]. Nella fascia inferiore scrivi: “Milano, Giorno + Zona, 12.205 collegamenti uno a uno su 13.793”. Footer: “Comune di Milano, OpenWifiMilano”. Non creare una UI fittizia: mantieni il placeholder finché non ricevi lo screenshot reale.
 ```
 
 Note relatore, 40 s:
 
-> Prima dichiaro lo scopo: uso interno o pubblicazione. Identificare un utente per erogare un servizio non è automaticamente un errore; servono base giuridica, accessi per ruolo e cancellazione. Per l’open data, Watermark controlla unicità e celle sotto cinque. Poi carico un secondo dataset. Nell’esempio Milano, utenti e login condividono Data e Zona: 144 righe su mille trovano un solo record, ma senza un identificativo restano collegate, non attribuite a una persona. Infine scarico file protetto e rapporto.
+> Prima dichiaro lo scopo: uso interno o pubblicazione. Identificare un utente per erogare un servizio non è automaticamente un errore. Per l’open data, Watermark controlla unicità e celle sotto cinque. Nell’esempio Milano, utenti e login condividono giorno e zona: 12.205 righe su 13.793 trovano un solo record. Il file aggiunge informazioni sul periodo e sull’area, ma non attribuisce una persona. Infine scarico la valutazione.
 
 ## 5 · Portabilità e architettura
 
 ```text
-Crea la slide 5 con palette esatta #F7F3E8, #17282B, #1F6B69, #D9EBE7, #A63F2E, #B3872C e layout 55/45. Titolo: “Un motore comune, policy diverse per ogni ente”. A sinistra mostra tre input che convergono in Watermark: “Roma · eventi”, “Bologna · celle aggregate”, “Milano · serie per zona”. A destra mostra lo stack enterprise, in ordine: “Console pilot”, “API”, “PostgreSQL e audit trail”, “worker asincroni”, “storage cifrato”, “OIDC / RBAC”. Inserisci due badge oro: “16 test automatici” e “LLM locale 4/4 casi”. Aggiungi [SCREENSHOT_ARCHITETTURA_OPZIONALE] soltanto se fornito, altrimenti usa il diagramma. Footer: “Dataset ufficiali Roma, Bologna e Milano”. Non presentare Streamlit come l’intera architettura enterprise.
+Crea la slide 5 con palette esatta #F7F3E8, #17282B, #1F6B69, #D9EBE7, #A63F2E, #B3872C e layout 40/60. Titolo: “Un motore comune, policy diverse per ogni ente”. A sinistra lascia [SCREENSHOT_VERIFICA_BOLOGNA] con callout su “Cella aggregata” e sull’esito. A destra mostra tre input, “Roma eventi”, “Bologna celle aggregate” e “Milano serie per zona”, che entrano nello stesso motore. Sotto mostra lo stack di prodotto: “Console pilot”, “API”, “PostgreSQL e audit trail”, “worker asincroni”, “storage cifrato”, “OIDC e RBAC”. Inserisci “test automatici verdi” e “LLM locale 4/4 casi”. Footer: “Dataset ufficiali Roma, Bologna e Milano”. Non presentare Streamlit come l’intera architettura enterprise.
 ```
 
 Note relatore, 30 s:
 
-> La portabilità è già provata su tre schemi reali: eventi individuali a Roma, aggregati a Bologna e serie per zona a Milano. Per venderlo, Streamlit resta la console del pilot; sotto servono API, PostgreSQL per policy e audit trail, storage cifrato, job asincroni e accesso per ruolo. Il prototipo ha sedici test automatici. Il flusso locale ha superato quattro casi di accettazione, compresi uso interno, citazioni e dati aggregati.
+> La portabilità è già provata su tre schemi reali: eventi individuali a Roma, aggregati a Bologna e serie per zona a Milano. Per venderlo, Streamlit resta la console del pilot. Il prodotto aggiunge API, PostgreSQL per policy e audit trail, storage cifrato, job asincroni e accesso per ruolo. La suite automatica copre anche gli incroci ufficiali; il flusso locale ha superato quattro casi di accettazione.
 
 ## 6 · Business plan e committente
 
@@ -71,7 +71,11 @@ Note relatore, 25 s:
 ## Asset da passare al compagno
 
 - `[LOGO_WATERMARK]`: `assets/logo.svg`.
-- `[SCREENSHOT_VERIFICA_BOLOGNA_O_INCROCIO_MILANO]`: **[DA ACQUISIRE DOPO IL FREEZE DELLA DEMO]**.
+- `[LOGO_WATERMARK_PNG]`: `assets/logo-watermark.png`, versione trasparente pronta per PowerPoint.
+- `[SCREENSHOT_VERIFICA_ROMA]`: vedere `docs/DEMO_SCREENSHOT_PLAN.md`.
+- `[SCREENSHOT_ASSISTENTE_LOCALE]`: vedere `docs/DEMO_SCREENSHOT_PLAN.md`.
+- `[SCREENSHOT_INCROCIO_MILANO]`: **[DA ACQUISIRE DOPO IL FREEZE DELLA DEMO]**.
+- `[SCREENSHOT_VERIFICA_BOLOGNA]`: vedere `docs/DEMO_SCREENSHOT_PLAN.md`.
 - `[FONTE_ROMA_WIFI]`: URL del catalogo già mostrato nell’app.
 - `[SCREENSHOT_ARCHITETTURA_OPZIONALE]`: usare il diagramma nativo di PowerPoint se non disponibile.
 - Dataset demo dell’incrocio: `data/milano_wifi_utenti_sample.csv` e `data/milano_wifi_login_sample.csv`.

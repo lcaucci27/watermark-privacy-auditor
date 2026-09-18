@@ -27,9 +27,7 @@ def robust_login_evidence(frame: pd.DataFrame) -> tuple[DailyOrderEvidence, Cros
 data = sidebar_picker()
 
 st.title("Verifica prima di pubblicare", icon=":material/fact_check:")
-st.markdown(
-    "Una risposta chiara per chi deve autorizzare un open data: **è davvero anonimo, quali rischi crea e come va corretto**."
-)
+st.caption("Esito, motivo e correzione per chi autorizza la pubblicazione.")
 
 if data is None:
     st.info("Scegli l'esempio oppure carica un CSV dalla barra laterale.", icon=":material/upload_file:")
@@ -58,8 +56,7 @@ cards[1].metric("Sessioni individuabili", f"{session_risk:.1%}", border=True)
 cards[2].metric("Precisione temporale", "1 secondo", border=True)
 cards[3].metric("Sedi al civico", frame["sede"].nunique(), border=True)
 
-st.header("Come può avvenire l'individuazione", icon=":material/person_search:")
-st.caption("Ogni informazione aggiunta restringe il gruppo fino a lasciare, quasi sempre, una sola sessione.")
+st.subheader("Quali dettagli restringono la ricerca", icon=":material/person_search:")
 st.bar_chart(
     ladder.set_index("informazioni conosciute"),
     y="sessioni individuabili",
@@ -68,17 +65,13 @@ st.bar_chart(
     horizontal=True,
 )
 
-with st.container(border=True):
-    st.subheader("Un esempio semplice", icon=":material/key:")
-    st.markdown(
-        "Se qualcuno sa che una persona si è collegata il **9 settembre alle 11:54**, in **Via della Stamperia 86**, "
-        "con il telefono impostato in **italiano**, può cercare quella combinazione. Se esiste una sola riga, "
-        "vede anche quanto è durata la sessione e quanti dati ha trasferito."
-    )
-    st.caption("Watermark misura quante combinazioni sono uniche; non cerca né mostra l'identità delle persone.")
+st.caption(
+    "Esempio: giorno, ora, sede e lingua possono lasciare una sola riga. Watermark misura la rarità, "
+    "ma non cerca l’identità della persona."
+)
 
-st.header("Le falle da correggere", icon=":material/report:")
-for item in issues[:4]:
+st.subheader("Le due correzioni prioritarie", icon=":material/report:")
+for item in issues[:2]:
     with st.container(border=True):
         color = "red" if item.severity == "Critica" else "orange"
         st.markdown(f":{color}-badge[{item.severity}] **{item.title}**")
@@ -87,28 +80,23 @@ for item in issues[:4]:
         st.markdown(f"**Cosa fare:** {item.remedy}")
 
 with st.expander("Altre criticità documentate", icon=":material/format_list_bulleted:"):
-    for item in issues[4:]:
+    for item in issues[2:]:
         st.markdown(f"**{item.title} · {item.severity}**")
         st.markdown(f"{item.evidence} {item.consequence}")
         st.caption(f"Intervento: {item.remedy}")
 
-st.header("Il caso LOGINCOUNT", icon=":material/fingerprint:")
+st.subheader("Il segnale nascosto in LOGINCOUNT", icon=":material/fingerprint:")
 with st.container(border=True):
     st.markdown(
-        "`LOGINCOUNT` è presente nel CSV ufficiale ma **Roma Capitale non ne documenta il significato**. "
-        "Non è corretto trattarlo automaticamente come ID della persona. Possiamo però verificare se si comporta "
-        "come un contatore che conserva memoria nel tempo."
+        "Roma Capitale non documenta `LOGINCOUNT`. Il campo segue però un ordine temporale compatibile con un "
+        "contatore persistente, quindi la scelta prudente è non pubblicarlo finché l’ente non lo chiarisce."
     )
     evidence = login_evidence(frame)
     evidence_cards = st.columns(3)
     evidence_cards[0].metric("Valore più alto arriva dopo", f"{evidence.ordered_share:.1%}", border=True)
     evidence_cards[1].metric("Dopo mescolamento casuale", f"{evidence.null_share:.1%}", border=True)
     evidence_cards[2].metric("Coppie confrontate", f"{evidence.pairs:,}", border=True)
-    st.warning(
-        "Il segnale è compatibile con un contatore persistente, ma non dimostra da solo che due righe appartengano "
-        "alla stessa persona. Finché l'ente non chiarisce il campo, la scelta prudente è non pubblicarlo.",
-        icon=":material/warning:",
-    )
+    st.caption("Il test collega un comportamento del campo, non attribuisce sessioni a persone reali.")
     details = st.expander("Validazione statistica", icon=":material/science:", on_change="rerun")
     if details.open:
         with details:
@@ -140,7 +128,7 @@ with st.container(border=True):
                 },
             )
 
-st.header("Versione consigliata", icon=":material/shield:")
+st.subheader("Versione pronta per la revisione", icon=":material/shield:")
 safe, suppressed = aggregate_for_publication(frame, k=5)
 with st.container(border=True):
     st.success(

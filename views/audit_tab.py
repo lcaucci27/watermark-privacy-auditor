@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import pandas as pd
 import streamlit as st
 
 from core.audit_agent import run_audit
-from views.shared import WIFI_FILE, csirt_corpus, frontier_chart, garante_corpus, impact_model, load_wifi, variants
+from views.shared import csirt_corpus, frontier_chart, garante_corpus, impact_model, variants
 
 STEPS_EXPLAINED = """
 1. **Individuazione**: quante sessioni sono uniche, cioè riconoscibili da chi sa giorno, ora, luogo e lingua.
@@ -16,12 +17,12 @@ STEPS_EXPLAINED = """
 """
 
 
-def render() -> None:
-    st.caption("AGENTE DI AUDIT · UN CLIC, CINQUE CONTROLLI")
-    if not WIFI_FILE.exists():
-        st.info("Esegui `python scripts/fetch_data.py` per scaricare i dati in `data/`.", icon=":material/download:")
-        return
-    wifi, _ = load_wifi(WIFI_FILE.read_bytes())
+def render(wifi: pd.DataFrame) -> None:
+    st.caption("Un clic esegue i controlli e prepara il rapporto per il DPO.")
+    dataset_signature = (
+        len(wifi), tuple(map(str, wifi.columns)),
+        int(pd.util.hash_pandas_object(wifi, index=True).sum()),
+    )
     csirt, csirt_index = csirt_corpus()
     garante, garante_index = garante_corpus()
 
@@ -50,12 +51,18 @@ def render() -> None:
                 icon = ":material/check_circle:" if step.ok else ":material/error:"
                 st.markdown(f"{icon} **{step.title}**: {step.outcome}")
             status.update(label="Audit completato", state="complete")
-        st.session_state["audit"] = (report, table, max_risk)
+        st.session_state["audit"] = (dataset_signature, report, table, max_risk)
 
     saved = st.session_state.get("audit")
     if not saved:
         return
-    report, table, max_risk = saved
+    if len(saved) != 4:
+        st.session_state.pop("audit", None)
+        return
+    saved_signature, report, table, max_risk = saved
+    if saved_signature != dataset_signature:
+        st.session_state.pop("audit", None)
+        return
     rec = report.recommendation
 
     k1, k2, k3, k4 = st.columns(4)

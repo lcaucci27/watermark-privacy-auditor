@@ -34,6 +34,8 @@ console DPO / workflow approvazione / report firmato
 
 `watermark-dpo:latest` è una configurazione specializzata di Qwen 2.5 3B con istruzioni di dominio; non è un fine-tuning dei pesi. L’output è JSON vincolato a quattro campi, a temperatura zero, con massimo 90 parole, controllo dei numeri, conservazione delle fonti, un retry correttivo e fallback deterministico. Nel test semantico finale tutti i modelli hanno ottenuto 4/4 con gli stessi guardrail: il 3B base e la variante Watermark hanno richiesto circa 52 secondi complessivi, il 7B circa 187.
 
+La UI espone una sola opzione conversazionale, **Watermark · chatbot locale**. Qwen 3B base e Qwen 7B restano benchmark da riga di comando; BGE-M3 indicizza testi per somiglianza e TF-IDF stima l'impatto degli allarmi. Questa separazione evita di presentare all'utente strumenti tecnici come chatbot alternativi.
+
 Il pacchetto Ollama del 3B riporta Qwen Research License; il 7B riporta Apache 2.0. La demo privilegia il 3B per latenza, ma una distribuzione commerciale deve completare la verifica legale o scegliere un modello piccolo con licenza compatibile. Il motore di regole e i guardrail non dipendono dal modello scelto.
 
 Per una vera specializzazione servono **[SET DI CASI ANNOTATI DA DPO]**, split di valutazione congelato, metriche su fedeltà/azione/citazione e solo dopo un eventuale LoRA. Finché non esistono questi dati, prompt vincolato più validazione deterministica è più verificabile di un claim di fine-tuning.

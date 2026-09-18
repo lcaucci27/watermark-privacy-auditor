@@ -10,14 +10,18 @@ Il portale Open Data Milano pubblica più serie OpenWifiMilano con la stessa str
 2. [login giornalieri per zona](https://dati.comune.milano.it/dataset/ds918-openwifimilano-logincountzone);
 3. tempo di navigazione e traffico di download/upload giornalieri per zona, elencati nella [raccolta CSV del Comune](https://dati.comune.milano.it/dataset?_dcat_subtheme_it_limit=0&_tags_limit=0&res_format=CSV).
 
-Chiave verificata negli export utenti e login: `Data + Zona`; entrambi usano le colonne `Tipologia_API;Zona;Data;Valore`. L’incrocio permette di derivare sessioni per dispositivo, durata media per sessione e traffico medio per dispositivo. È una profilazione di aree e fasce temporali, non di persone. Il rischio cresce quando una cella contiene pochi utenti, quando le release consentono sottrazioni o quando un altro file aggiunge un identificativo stabile.
+Chiave usata nell’app: `Giorno + Zona`. `Giorno` deriva dal campo `Data` perché gli export storici conservano anche orari tecnici diversi. L’incrocio permette di derivare sessioni per dispositivo, durata media per sessione e traffico medio per dispositivo. È una profilazione di aree e periodi, non di persone. Il rischio cresce con celle piccole, differenze tra release o un altro file che aggiunge un identificativo stabile.
 
-Uso nella demo: caricare due export, scegliere `Data` e `Zona` e mostrare quante righe trovano un solo candidato.
+Uso nella demo: scegliere Milano e aprire `Incrocia`; il secondo export e le chiavi sono già configurati.
 
-CSV inclusi: `data/milano_wifi_utenti_sample.csv` e `data/milano_wifi_login_sample.csv`. Fonti esplicite:
+CSV inclusi: `data/milano_wifi_utenti_sample.csv` (13.793 righe) e `data/milano_wifi_login_sample.csv` (13.930 righe). Fonti esplicite:
 
 - https://dati.comune.milano.it/dataset/ds917-openwifimilano-uniqueuserzone
 - https://dati.comune.milano.it/dataset/ds918-openwifimilano-logincountzone
+- CSV utenti risolto il 18 settembre 2026: https://dati.comune.milano.it/dataset/6c8bc9a9-2e37-4d63-b7a7-a24d34949617/resource/f766671a-07ff-49a3-a5f6-9d4568c60e50/download/20260917-230128_uniqueuserzone.csv
+- CSV login risolto il 18 settembre 2026: https://dati.comune.milano.it/dataset/8b2529f7-5f8d-4b5b-92a5-6f1fe4476cb3/resource/7508cb64-6f83-4399-b47b-271479d59f18/download/20260917-230128_logincountzone.csv
+
+Lo script non dipende dai due nomi datati: interroga CKAN e risolve ogni volta la risorsa CSV corrente.
 
 ## Bologna · coppia unibile e terzo dataset di contesto
 
@@ -31,10 +35,12 @@ La prima coppia si collega tramite il codice dell’area e aggiunge geometria/in
 
 Questo caso è utile perché prova la portabilità su dati già aggregati: Watermark non grida al rischio solo perché vede luogo e ora, ma controlla celle piccole, differenze tra release e precisione geografica.
 
-CSV inclusi: `data/bologna_wifi_affollamento_sample.csv` e `data/bologna_wifi_aree_sample.csv`. Fonti esplicite:
+CSV inclusi: `data/bologna_wifi_affollamento_sample.csv` (5.000 osservazioni) e `data/bologna_wifi_aree_sample.csv` (76 aree). Fonti esplicite:
 
 - https://opendata.comune.bologna.it/explore/dataset/iperbole-wifi-affollamento/
 - https://opendata.comune.bologna.it/explore/dataset/bolognawifi-elenco-aree-segnale/
+- CSV affollamento: https://opendata.comune.bologna.it/api/explore/v2.1/catalog/datasets/iperbole-wifi-affollamento/exports/csv?lang=it&timezone=Europe%2FRome&use_labels=true&delimiter=%3B
+- CSV aree: https://opendata.comune.bologna.it/api/explore/v2.1/catalog/datasets/bolognawifi-elenco-aree-segnale/exports/csv?lang=it&timezone=Europe%2FRome&use_labels=true&delimiter=%3B
 
 ## Roma · composizione tra pubblicazioni successive
 
