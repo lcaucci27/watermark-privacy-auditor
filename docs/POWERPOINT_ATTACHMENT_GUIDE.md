@@ -12,3 +12,5 @@ Usare un prompt alla volta da `CLAUDE_POWERPOINT_PROMPTS.md`. Allegare soltanto 
 | 6 · Business | `logo-watermark.png` |
 
 `05_audit_completo.png` serve come backup tecnico o commerciale. Tutti i prompt contengono già testo visibile, layout, palette, dati e note relatore.
+
+Per le prove usare `DISCORSO_E_NOTE_RELATORI.md`: contiene il copione cronometrato, cosa indicare e le spiegazioni semplificate dei termini tecnici.
