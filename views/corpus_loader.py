@@ -84,6 +84,12 @@ def _guess_text_columns(frame: pd.DataFrame) -> list[str]:
     return lengths.sort_values(ascending=False).head(1).index.tolist()
 
 
+def _preset_index(columns: list[str], wanted: tuple[str, ...]) -> int:
+    """Indice nel selectbox (0 = Nessuna) della prima colonna preimpostata presente."""
+    found = _preset(columns, wanted)
+    return columns.index(found[0]) + 1 if found else 0
+
+
 def _guess_title(columns: list[str]) -> int:
     """Indice nel selectbox (0 = Nessuna) della prima colonna con nome da titolo."""
     for position, column in enumerate(columns):
@@ -92,7 +98,13 @@ def _guess_title(columns: list[str]) -> int:
     return 0
 
 
-def corpus_picker(key: str, prefix: str, label: str) -> Corpus | None:
+def _preset(columns: list[str], wanted: tuple[str, ...]) -> list[str]:
+    return [column for column in wanted if column in columns]
+
+
+def corpus_picker(
+    key: str, prefix: str, label: str, presets: dict[str, tuple[str, ...]] | None = None
+) -> Corpus | None:
     """Mostra sorgente e mappatura delle colonne; restituisce il corpus indicizzato."""
     local = _local_files(prefix)
     with st.container(border=True):
@@ -124,13 +136,22 @@ def corpus_picker(key: str, prefix: str, label: str) -> Corpus | None:
         columns = frame.columns.tolist()
         guessed = _guess_text_columns(frame)
         left, right = st.columns(2)
-        text_columns = left.multiselect("Colonne di testo", columns, default=guessed, key=f"{key}_text")
+        presets = presets or {}
+        # I file generati da fetch_data.py hanno colonne note: le preimposta invece di indovinarle.
+        text_default = _preset(columns, presets.get("text", ())) or guessed
+        text_columns = left.multiselect("Colonne di testo", columns, default=text_default, key=f"{key}_text")
         title_column = right.selectbox(
-            "Titolo", [NONE] + columns, index=_guess_title(columns), key=f"{key}_title"
+            "Titolo", [NONE] + columns, index=_preset_index(columns, presets.get("title", ())) or _guess_title(columns),
+            key=f"{key}_title",
         )
         left, right = st.columns(2)
-        date_column = left.selectbox("Data", [NONE] + columns, key=f"{key}_date")
-        label_column = right.selectbox("Etichetta (gravità, tipologia…)", [NONE] + columns, key=f"{key}_label")
+        date_column = left.selectbox(
+            "Data", [NONE] + columns, index=_preset_index(columns, presets.get("date", ())), key=f"{key}_date"
+        )
+        label_column = right.selectbox(
+            "Etichetta (gravità, tipologia…)", [NONE] + columns,
+            index=_preset_index(columns, presets.get("label", ())), key=f"{key}_label",
+        )
 
     if not text_columns:
         st.warning("Seleziona almeno una colonna di testo.", icon=":material/warning:")
@@ -145,7 +166,12 @@ def corpus_picker(key: str, prefix: str, label: str) -> Corpus | None:
     date = None
     if date_column != NONE:
         # utc=True evita l'errore su date con fusi orari misti, frequenti nei feed RSS.
-        date = pd.to_datetime(frame[date_column], errors="coerce", dayfirst=True, utc=True).dt.tz_localize(None)
+        # Il CSIRT scrive le date come "18/09/26 ore 09:49".
+        raw_dates = frame[date_column].astype(str)
+        if raw_dates.str.contains(" ore ", regex=False).any():
+            date = pd.to_datetime(raw_dates.str.replace(" ore ", " ", regex=False), format="%d/%m/%y %H:%M", errors="coerce")
+        else:
+            date = pd.to_datetime(raw_dates, errors="coerce", dayfirst=True, utc=True).dt.tz_localize(None)
     return Corpus(
         frame=frame, text=text, title=title, date=date,
         label=None if label_column == NONE else label_column, index=index,

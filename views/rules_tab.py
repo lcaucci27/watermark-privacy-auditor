@@ -13,6 +13,8 @@ PRESET_QUERIES = {
     "Videosorveglianza urbana": "videosorveglianza comune telecamere spazi pubblici conservazione immagini",
     "Biometria nella PA": "dati biometrici riconoscimento facciale rilevazione presenze pubblica amministrazione",
     "Telemetria e IoT": "dispositivi connessi telemetria geolocalizzazione indirizzo IP identificativi",
+    "Open data e anonimizzazione": "pubblicazione open data anonimizzazione dati personali identificabili trasparenza",
+    "WiFi pubblico": "servizio pubblico Wi-Fi gratuito autenticazione utenti dati di navigazione conservazione",
 }
 
 
@@ -39,7 +41,9 @@ def show_matches(corpus: Corpus, query: str, top_n: int) -> pd.DataFrame:
 
 def render() -> Corpus | None:
     st.caption("PROVVEDIMENTI E LINEE GUIDA · GARANTE PRIVACY")
-    corpus = corpus_picker("garante", "garante", "Archivio provvedimenti")
+    corpus = corpus_picker(
+        "garante", "garante", "Archivio provvedimenti", {"text": ("testo",), "title": ("titolo",)}
+    )
     if corpus is None:
         return None
     st.metric("Documenti indicizzati", f"{len(corpus.frame):,}", border=True)
@@ -47,7 +51,7 @@ def render() -> Corpus | None:
     preset = st.pills("Casi d’uso", list(PRESET_QUERIES), key="rules_preset")
     query = st.text_input(
         "Trattamento da verificare",
-        PRESET_QUERIES.get(preset, PRESET_QUERIES["Videosorveglianza urbana"]),
+        PRESET_QUERIES.get(preset, PRESET_QUERIES["Open data e anonimizzazione"]),
         key=f"rules_query_{preset}",
     )
     top_n = st.slider("Documenti da mostrare", 3, 15, 5, key="rules_top")

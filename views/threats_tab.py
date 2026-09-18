@@ -7,9 +7,19 @@ import plotly.express as px
 import streamlit as st
 
 from core.text_corpus import discover_topics, extract_entities, search, tag_assets, train_text_classifier
+from core.threat_model import LABEL as IMPACT_LABEL, ablation, train_threat_model
 from views.corpus_loader import Corpus, corpus_picker
 
-DEFAULT_ASSET = "telecamere IP per videosorveglianza urbana, NVR, VPN per accesso remoto dei manutentori"
+DEFAULT_ASSET = (
+    "rete WiFi pubblica: access point e controller wireless, captive portal di autenticazione web, "
+    "server di accesso remoto e VPN dei manutentori, portale web del servizio"
+)
+CSIRT_PRESETS = {
+    "text": ("titolo", "sintesi", "tipologia", "prodotti", "descrizione"),
+    "title": ("titolo",),
+    "date": ("data",),
+    "label": (IMPACT_LABEL,),
+}
 MARGIN = dict(l=20, r=20, t=60, b=20)
 
 
@@ -20,14 +30,17 @@ def _enrich(corpus: Corpus) -> tuple[pd.DataFrame, pd.DataFrame]:
     table["asset"] = assets.apply(lambda row: ", ".join(row.index[row]), axis=1)
     if corpus.date is not None:
         table.insert(0, "data", corpus.date)
-    if corpus.label:
+    for column in ("impatto_classe", "impatto_punteggio", "n_cve_sfruttate"):
+        if column in corpus.frame.columns:
+            table[column] = corpus.frame[column]
+    if corpus.label and corpus.label not in table.columns:
         table["etichetta"] = corpus.frame[corpus.label]
     return table, assets
 
 
 def render() -> Corpus | None:
     st.caption("BOLLETTINI DI SICUREZZA · CSIRT ITALIA")
-    corpus = corpus_picker("csirt", "csirt", "Bollettini e allarmi")
+    corpus = corpus_picker("csirt", "csirt", "Bollettini e allarmi", CSIRT_PRESETS)
     if corpus is None:
         return None
     table, assets = _enrich(corpus)
@@ -85,13 +98,18 @@ def render() -> Corpus | None:
     with st.container(border=True):
         st.subheader("Modello di valutazione delle minacce", icon=":material/model_training:")
         if corpus.label:
-            run = st.button("Addestra sul testo dei bollettini", type="primary", icon=":material/play_arrow:", key="train_threat")
+            run = st.button("Addestra il modello di impatto", type="primary", icon=":material/play_arrow:", key="train_threat")
             if run:
                 try:
                     with st.spinner("Addestramento…"):
-                        st.session_state["threat_model"] = train_text_classifier(
-                            corpus.frame.assign(_testo=corpus.text), "_testo", corpus.label
-                        )
+                        if corpus.label == IMPACT_LABEL:
+                            st.session_state["threat_model"] = train_threat_model(corpus.frame)
+                            st.session_state["threat_ablation"] = ablation(corpus.frame)
+                        else:
+                            st.session_state["threat_model"] = train_text_classifier(
+                                corpus.frame.assign(_testo=corpus.text), "_testo", corpus.label
+                            )
+                            st.session_state.pop("threat_ablation", None)
                     st.session_state["threat_model_key"] = (len(corpus.frame), corpus.label)
                 except ValueError as exc:
                     st.error(str(exc), icon=":material/error:")
@@ -102,6 +120,14 @@ def render() -> Corpus | None:
                 for card, (name, value) in zip(cards, model.metrics.items()):
                     card.metric(labels.get(name, name), f"{value:.3f}" if isinstance(value, float) else value, border=True)
                 st.caption("TF-IDF + regressione logistica. Metriche sul 25% dei bollettini escluso dall’addestramento, seed 42.")
+                comparison = st.session_state.get("threat_ablation")
+                if comparison is not None:
+                    st.markdown("**Il modello copia la gravità dichiarata dal fornitore?**")
+                    st.dataframe(comparison, width="stretch", hide_index=True)
+                    st.caption(
+                        "Il modello principale non vede frasi come “con gravità critica” né i punteggi CVSS: "
+                        "stima l’impatto sistemico ACN da prodotto, tipo di attacco, sfruttamento in rete e disponibilità di PoC."
+                    )
                 st.dataframe(model.top_terms, width="stretch", hide_index=True)
                 new_text = st.text_area("Testo di un nuovo allarme da valutare", key="new_alert")
                 if new_text.strip():
