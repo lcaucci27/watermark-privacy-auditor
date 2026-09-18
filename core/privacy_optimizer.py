@@ -86,7 +86,7 @@ def explore(frame: pd.DataFrame, sample: int = 4000, seed: int = 42) -> pd.DataF
         results.append({
             "variante": variant.label, "orario": time, "luogo": place, "contatore": counter,
             "rischio": risk(publish(frame, variant)), "utilità": utility(publish(rows, variant), target, seed),
-            # Un contatore personale pubblicato così com'è collega le sessioni anche se nessuna è unica.
+            # Un contatore potenzialmente persistente resta rischioso anche se nessuna riga è unica.
             "collegabile": counter == "pubblicato",
         })
     table = pd.DataFrame(results)

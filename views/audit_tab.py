@@ -9,7 +9,7 @@ from views.shared import WIFI_FILE, csirt_corpus, frontier_chart, garante_corpus
 
 STEPS_EXPLAINED = """
 1. **Individuazione**: quante sessioni sono uniche, cioè riconoscibili da chi sa giorno, ora, luogo e lingua.
-2. **Pseudonimi nascosti**: quali colonne numeriche si comportano come un contatore personale e collegano le sessioni.
+2. **Pseudonimi nascosti**: quali colonne numeriche mostrano memoria temporale compatibile con un contatore persistente.
 3. **Minacce**: quali bollettini CSIRT riguardano i sistemi che producono questi dati, con l'impatto stimato dal modello.
 4. **Norme**: i passaggi del Garante che si applicano, citati parola per parola.
 5. **Correzione**: l'ottimizzatore prova 36 versioni del dataset e sceglie la più utile sotto la soglia di rischio.

@@ -1,8 +1,12 @@
-# Segnale
+# Watermark
 
-Baseline Streamlit offline per analizzare dataset tabellari durante il contest. Carica CSV/XLSX, controlla qualità e distribuzioni, addestra modelli locali e restituisce metriche, predizioni, segmenti o anomalie.
+Watermark aiuta il DPO di un Comune a decidere se un dataset urbano può essere pubblicato. Nel caso dimostrativo analizza le sessioni del WiFi pubblico di Roma Capitale, misura quanto siano individuabili, segnala campi con memoria temporale e produce una versione aggregata con gruppi di almeno cinque sessioni.
 
-## Avvio rapido
+Tutti i controlli essenziali girano in locale. L’app usa i dati di Roma Capitale, i bollettini CSIRT Italia e i provvedimenti del Garante privacy già inclusi in `data/`.
+
+## Avvio
+
+Richiede Python 3.12.
 
 ### Windows PowerShell
 
@@ -14,7 +18,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\scripts\run.ps1
 ```
 
-### macOS Bash o zsh
+### macOS
 
 ```bash
 git clone https://github.com/lcaucci27/hackathon-ai.git
@@ -24,73 +28,41 @@ chmod +x scripts/setup.sh scripts/run.sh
 ./scripts/run.sh
 ```
 
-Aprire `http://localhost:8501`. Interrompere il server con `Ctrl+C`. La configurazione è verificata con Python 3.12; su macOS, se manca, eseguire `brew install python@3.12`.
+Aprire `http://localhost:8501`.
 
-## Dove si trova cosa
+## Percorso dimostrativo
 
-```text
-streamlit_app.py            Interfaccia e flusso della demo
-core/
-├── challenge_config.py     Nome, testi e messaggi da adattare alla traccia
-└── ml_pipeline.py          Preprocessing, modelli, metriche ed esportazione
-docs/
-├── PRESENTATION_SHEET.md   Decisioni, roadmap, demo e copione del pitch
-├── SLIDES_BRIEF.md         Struttura pronta per produrre le sei slide
-└── MACOS_SETUP.md          Installazione dettagliata per il collaboratore Mac
-scripts/
-├── setup.ps1 / run.ps1     Preparazione e avvio su Windows
-└── setup.sh / run.sh       Preparazione e avvio su macOS
-.streamlit/config.toml      Tema visivo
-requirements.txt            Versioni Python riproducibili
-CONTRIBUTING.md             Regole di sviluppo e controlli minimi
-```
+1. **Verifica** mostra l’esito, le prove più leggibili e la correzione consigliata.
+2. **Fai una domanda** interpreta richieste in italiano ed esegue i controlli adatti.
+3. **Rapporto** svolge l’audit completo e genera un file per il DPO.
 
-## Cosa modificare domani
+Il dato centrale è semplice: conoscere giorno, ora, sede e lingua rende individuabile il 99,5% delle sessioni del campione. `LOGINCOUNT`, presente nel CSV ma non documentato dal catalogo, conserva memoria nel tempo; questo giustifica la sospensione del campo e una richiesta di chiarimento all’ente, non l’attribuzione delle righe a persone reali.
 
-1. Compilare `docs/PRESENTATION_SHEET.md` appena viene annunciata la traccia.
-2. Aggiornare nome e messaggi in `core/challenge_config.py`.
-3. Caricare il dataset e verificare target, schema, valori mancanti e leakage.
-4. Scegliere un solo percorso principale: previsione, segmentazione o anomalie.
-5. Collegare l'output a una decisione concreta dell'utente.
-6. Inserire metriche e screenshot reali in `docs/SLIDES_BRIEF.md`.
+## IA locale opzionale
 
-Non descrivere correlazioni o feature importance come cause. Le metriche sul test set misurano il comportamento sul campione disponibile, non la validità su popolazioni o periodi diversi.
-
-## Funzioni già disponibili
-
-- classificazione e regressione con Random Forest;
-- segmentazione con K-Means;
-- rilevazione anomalie con Isolation Forest;
-- preprocessing numerico e categorico;
-- imputazione dei valori mancanti;
-- valutazione su test set separato;
-- esportazione di risultati e modello;
-- dataset offline per provare ogni percorso.
-
-## Verifica
-
-PowerShell:
+Senza Ollama l’app resta utilizzabile con modelli scikit-learn e risposte calcolate. Per aggiungere ricerca semantica e riscrittura locale:
 
 ```powershell
-.\.venv\Scripts\python.exe -m py_compile .\streamlit_app.py .\core\challenge_config.py .\core\ml_pipeline.py
-.\.venv\Scripts\python.exe -m pip check
-.\.venv\Scripts\python.exe -c "from streamlit.testing.v1 import AppTest; app = AppTest.from_file('streamlit_app.py').run(timeout=120); print(app.exception)"
+ollama pull bge-m3
+ollama pull qwen2.5:3b
+python scripts/precompute_embeddings.py
+```
+
+`qwen2.5:7b` è supportato come alternativa più lenta. Il modello linguistico riceve soltanto la domanda e risultati aggregati; le righe del file non vengono incluse nel prompt.
+
+## Verifica tecnica
+
+```powershell
+python -m compileall -q core views app_pages scripts streamlit_app.py
+python -m pip check
+python -m pytest -q
 git diff --check
 ```
 
-macOS:
+La logica di dominio è in `core/`, le pagine Streamlit in `app_pages/`, le viste condivise in `views/` e i materiali del progetto in `docs/`.
 
-```bash
-.venv/bin/python -m py_compile streamlit_app.py core/challenge_config.py core/ml_pipeline.py
-.venv/bin/python -m pip check
-.venv/bin/python -c "from streamlit.testing.v1 import AppTest; app = AppTest.from_file('streamlit_app.py').run(timeout=120); print(app.exception)"
-git diff --check
-```
+## Limiti
 
-Il test dell'interfaccia deve stampare una lista vuota.
-
-## Confini della soluzione
-
-Streamlit resta adatto finché il flusso consiste in upload, filtri, grafici, training locale, acquisizione singola da camera o aggiornamenti periodici. Valutare un backend separato solo per video continuo, WebSocket a bassa latenza, hardware bidirezionale, task persistenti o molti utenti concorrenti. La matrice completa è in `docs/PRESENTATION_SHEET.md`.
-
-Dataset riservati, credenziali e configurazioni personali non vanno committati. Salvare i dati privati della gara in `data/private/`, già esclusa da Git.
+- La semantica di `LOGINCOUNT` deve essere confermata da Roma Capitale.
+- Un bollettino CSIRT semanticamente pertinente non dimostra che la versione installata sia vulnerabile.
+- Le misure descrivono il campione disponibile; nessuna persona viene cercata o identificata.

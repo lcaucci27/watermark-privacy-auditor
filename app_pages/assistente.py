@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from core import llm
+from core import llm, local_ai
 from core.assistant import IntentRouter
 from views.assistant_answers import ANSWERS
 from views.dataset import sidebar_picker
@@ -11,6 +11,7 @@ INTENT_NAMES = {
     "verifica": "verifica del dataset", "correggi": "correzione automatica", "minacce": "minacce sui sistemi",
     "norme": "riferimenti del Garante", "spiega": "spiegazione", "rapporto": "rapporto per il DPO",
     "allarme": "valutazione di un allarme", "aiuto": "guida", "cerca": "ricerca nelle fonti",
+    "statistica": "analisi statistica",
 }
 SUGGESTIONS = {
     ":material/fact_check: Questo dataset è pubblicabile?": "Questo dataset è pubblicabile?",
@@ -30,14 +31,34 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 data = sidebar_picker()
+NO_LLM = "Risultati calcolati · più rapido"
+CLAUDE = "Claude (cloud, facoltativo)"
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def language_models() -> list[str]:
+    installed = local_ai.installed_models()
+    local = [
+        f"{name} · locale"
+        for name in local_ai.CHAT_MODELS
+        if name in installed or f"{name}:latest" in installed
+    ]
+    return [NO_LLM] + local + ([CLAUDE] if llm.available() else [])
+
+
 with st.sidebar:
-    use_llm = st.toggle(
-        "Riformula con Claude", value=False, disabled=not llm.available(), key="use_llm",
-        help="Facoltativo. Richiede il pacchetto anthropic e la variabile ANTHROPIC_API_KEY. "
-             "Riceve solo i risultati aggregati, mai il dataset.",
+    st.subheader("Modello linguistico", icon=":material/neurology:")
+    writer = st.selectbox(
+        "Chi scrive le risposte", language_models(), key="writer", label_visibility="collapsed",
+        help="I modelli locali girano con Ollama su questo computer. Ricevono solo la domanda e i risultati aggregati.",
     )
-    st.caption("IA locale attiva · nessun dato lascia il computer" if not use_llm
-               else "Claude riceve solo domanda e risultati aggregati")
+    if writer == NO_LLM:
+        st.caption("Risposta immediata · modelli calcolati su questo computer")
+    elif writer == CLAUDE:
+        st.caption("Claude riceve solo domanda e risultati aggregati")
+    else:
+        st.caption("LLM locale · nessun dato lascia il computer")
+
 
 if not st.session_state.messages:
     st.title("Il tuo dataset è davvero anonimo?")
@@ -63,8 +84,8 @@ def answer(message: dict, replay: bool) -> str:
     handler = ANSWERS[message["intent"]]
     st.caption(f":material/psychology: Ho capito: {INTENT_NAMES[message['intent']]} · confidenza {message['confidence']:.0%}")
     summary = handler(data, message["question"], message["threshold"], replay, key=str(message["id"]))
-    if message.get("rewritten"):
-        st.markdown(":violet-badge[:material/auto_awesome: Riformulato da Claude]")
+    if replay and message.get("rewritten"):
+        st.markdown(f":violet-badge[:material/neurology: Scritto da {message.get('writer', 'LLM')}]")
         st.markdown(message["rewritten"])
     return summary
 
@@ -93,12 +114,18 @@ if prompt:
     }
     with st.chat_message("assistant", avatar=":material/policy:"):
         summary = answer(message, replay=False)
-        if use_llm:
-            with st.spinner("Claude riformula la risposta…"):
+        if writer.endswith("· locale"):
+            model_name = writer.split(" · ")[0]
+            st.markdown(f":violet-badge[:material/neurology: Scritto da {model_name} sul tuo computer]")
+            message["rewritten"] = st.write_stream(local_ai.chat_stream(prompt, summary, model_name))
+            message["writer"] = model_name
+        elif writer == CLAUDE:
+            with st.spinner("Claude scrive la risposta…"):
                 message["rewritten"] = llm.rewrite(prompt, summary)
+            message["writer"] = "Claude"
             if message.get("rewritten"):
-                st.markdown(":violet-badge[:material/auto_awesome: Riformulato da Claude]")
+                st.markdown(":violet-badge[:material/auto_awesome: Scritto da Claude]")
                 st.markdown(message["rewritten"])
             else:
-                st.caption("Claude non disponibile: resta la risposta locale.")
+                st.caption("Claude non disponibile: resta la risposta calcolata.")
     st.session_state.messages.append(message)

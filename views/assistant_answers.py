@@ -13,11 +13,14 @@ from core.audit_agent import INFRASTRUCTURE_QUERY, RULE_QUERY, run_audit
 from core.linkability import scan_counters
 from core.privacy import DIRECT, QUASI, SENSITIVE, anonymize, classify_columns, reidentification_risk
 from core.privacy_optimizer import Variant, publish, recommend
-from core.text_corpus import best_passages, search
-from core.threat_model import bulletin_text, explain
+from core.semantic import hybrid_search
+from core.threat_model import bulletin_text, explain, predict_semantic
 from core.wifi_dataset import PUBLISHED_KEYS, unique_share
 from views.dataset import ActiveDataset
-from views.shared import csirt_corpus, frontier_chart, garante_corpus, impact_model, variants
+from views.shared import (
+    csirt_corpus, csirt_hybrid, frontier_chart, garante_corpus, garante_passages, impact_model,
+    semantic_impact_model, variants,
+)
 
 DEFAULT_RISK = 0.15
 
@@ -58,8 +61,8 @@ def verifica(data: ActiveDataset, question: str, threshold: float | None, replay
         st.progress(float(row["ordine nel tempo"]), text=f"Nei dati pubblicati: {row['ordine nel tempo']:.0%}")
         st.progress(float(row["ipotesi nulla"]), text=f"Con numeri mescolati a caso: {row['ipotesi nulla']:.0%}")
         summary += (
-            f" In più, la colonna **{row['colonna']}** si comporta come un contatore personale di accessi: "
-            "collega tra loro le sessioni della stessa persona, giorno dopo giorno."
+            f" In più, la colonna **{row['colonna']}** mostra memoria temporale compatibile con un contatore persistente: "
+            "può creare correlabilità tra sessioni e richiede un chiarimento dell'ente."
         )
     st.markdown(summary + "\n\nPuoi chiedermi *correggilo* o *perché è un problema?*")
     return summary
@@ -127,12 +130,14 @@ def correggi(data: ActiveDataset, question: str, threshold: float | None, replay
 
 
 def minacce(data: ActiveDataset, question: str, threshold: float | None, replay: bool, key: str = "") -> str:
-    csirt, index = csirt_corpus()
+    csirt, _ = csirt_corpus()
     if csirt is None:
         st.markdown("Non trovo i bollettini CSIRT in `data/`.")
         return "Bollettini non disponibili."
-    with _step(f"Cerco tra {len(csirt):,} bollettini CSIRT quelli sui sistemi WiFi", replay):
-        hits = search(index, f"{question} {INFRASTRUCTURE_QUERY}", 8)
+    index = csirt_hybrid(tuple(bulletin_text(csirt)))
+    mode = "per significato e per parole" if index.semantic else "per parole"
+    with _step(f"Cerco tra {len(csirt):,} bollettini CSIRT, {mode}", replay):
+        hits = hybrid_search(index, f"{question} {INFRASTRUCTURE_QUERY}", 8)
     table = csirt.loc[hits.index, ["codice", "titolo", "impatto_classe", "n_cve_sfruttate"]].rename(
         columns={"impatto_classe": "impatto ACN", "n_cve_sfruttate": "CVE sfruttate"})
     critical = int((table["impatto ACN"] == "Critico").sum())
@@ -142,24 +147,27 @@ def minacce(data: ActiveDataset, question: str, threshold: float | None, replay:
     summary = (f"Sui sistemi che producono questi dati (access point, captive portal, accesso remoto) ci sono {len(table)} "
                f"bollettini pertinenti: {critical} con impatto critico, {exploited} con vulnerabilità già sfruttate in rete.")
     st.markdown(summary)
-    return summary
+    sources = "\n".join(f"[{i}] {row.codice} {row.titolo} (impatto {row._3})" for i, row in enumerate(table.itertuples(), 1))
+    return f"{summary}\nBollettini:\n{sources}"
 
 
 def norme(data: ActiveDataset, question: str, threshold: float | None, replay: bool, key: str = "") -> str:
-    garante, index = garante_corpus()
-    if garante is None:
+    loaded = garante_passages()
+    if loaded is None:
         st.markdown("Non trovo i provvedimenti del Garante in `data/`.")
         return "Provvedimenti non disponibili."
+    passages, index = loaded
+    mode = "per significato e per parole" if index.semantic else "per parole"
     query = f"{question} {RULE_QUERY}"
-    with _step(f"Cerco nei {len(garante)} documenti del Garante", replay):
-        hits = search(index, query, 3)
+    with _step(f"Cerco in {len(passages):,} passaggi di {passages['titolo'].nunique()} documenti del Garante, {mode}", replay):
+        hits = hybrid_search(index, query, 3)
     quotes = []
-    for position in hits.index:
-        passage = best_passages(index, str(garante.loc[position, "testo"]), query, 1)[0]
-        st.caption(str(garante.loc[position, "titolo"]))
+    for number, position in enumerate(hits.index, 1):
+        title, passage = passages.loc[position, "titolo"], passages.loc[position, "passaggio"]
+        st.caption(f"[{number}] {title}")
         st.markdown(f"> {passage}")
-        quotes.append(passage)
-    return "Il Garante: " + " … ".join(quotes[:2])
+        quotes.append(f"[{number}] {title}: {passage}")
+    return "Passaggi del Garante:\n" + "\n".join(quotes)
 
 
 def spiega(data: ActiveDataset, question: str, threshold: float | None, replay: bool, key: str = "") -> str:
@@ -175,9 +183,9 @@ def spiega(data: ActiveDataset, question: str, threshold: float | None, replay: 
 
 1. **Il numero più alto arriva dopo?** Tra due sessioni nello stesso posto, stesso giorno, stessa lingua, con numeri vicini (es. 95 e 96): succede nel **{row['ordine nel tempo']:.0%}** dei casi. Con numeri mescolati a caso: {row['ipotesi nulla']:.0%}, come lanciare una moneta.
 2. **È il contatore dell'hotspot?** Allora dentro lo stesso hotspot salirebbe sempre. Sale solo nel **{row['crescita nel luogo']:.0%}** dei passi: no.
-3. Resta una sola spiegazione: **è il contatore personale**. Chi lo vede collega le sessioni della stessa persona tra giorni e luoghi.
+3. Il campo conserva quindi **memoria temporale** ed è compatibile con un contatore persistente. Potrebbe rendere collegabili sessioni diverse, ma questi test non dimostrano che appartengano alla stessa persona.
 
-Nessun documento ufficiale descrive questa colonna: è una deduzione dai dati, per questo diciamo *si comporta come*."""
+Nessun documento ufficiale descrive questa colonna. Per stabilire se sia davvero riferita all'utente o al dispositivo serve una conferma di Roma Capitale."""
     st.markdown(text)
     return text
 
@@ -208,27 +216,35 @@ def rapporto(data: ActiveDataset, question: str, threshold: float | None, replay
 
 
 def allarme(data: ActiveDataset, question: str, threshold: float | None, replay: bool, key: str = "") -> str:
-    csirt, index = csirt_corpus()
+    csirt, _ = csirt_corpus()
     model = impact_model(csirt) if csirt is not None else None
     if model is None:
         st.markdown("Il modello di impatto richiede i bollettini CSIRT in `data/`.")
         return "Modello non disponibile."
-    with _step("Stimo l'impatto sistemico con il modello addestrato sui bollettini CSIRT", replay):
-        # Un allarme incollato non ha i campi strutturati del CSIRT: li deduce dal testo.
-        alert = pd.DataFrame({
-            "sintesi": [question],
-            "n_cve_sfruttate": [int(bool(re.search(r"sfruttament|sfruttat|exploited", question, re.IGNORECASE)))],
-            "n_cve_con_poc": [int(bool(re.search(r"\bpoc\b|proof of concept", question, re.IGNORECASE)))],
-        })
-        predicted, drivers = explain(model, bulletin_text(alert).iloc[0])
+    # Un allarme incollato non ha i campi strutturati del CSIRT: li deduce dal testo.
+    alert = pd.DataFrame({
+        "sintesi": [question],
+        "n_cve_sfruttate": [int(bool(re.search(r"sfruttament|sfruttat|exploited", question, re.IGNORECASE)))],
+        "n_cve_con_poc": [int(bool(re.search(r"\bpoc\b|proof of concept", question, re.IGNORECASE)))],
+    })
+    text = bulletin_text(alert).iloc[0]
+    with _step("Stimo l'impatto con il modello validato sui bollettini successivi (TF-IDF)", replay):
+        predicted, drivers = explain(model, text)
         st.dataframe(drivers, hide_index=True, width="stretch")
-    with _step("Cerco bollettini simili già pubblicati", replay):
-        similar = csirt.loc[search(index, question, 3).index, ["codice", "titolo", "impatto_classe"]]
+        st.caption("Parole dell'allarme che hanno spinto di più la stima.")
+    semantic = semantic_impact_model(csirt)
+    second = predict_semantic(semantic, text) if semantic is not None else None
+    if second is not None:
+        with _step("Cerco per significato i bollettini storici più simili (embedding bge-m3)", replay):
+            st.dataframe(second[2], hide_index=True, width="stretch")
     colour = {"Critico": "red", "Alto": "orange", "Medio": "blue"}.get(predicted, "gray")
     st.markdown(f":{colour}-badge[Impatto stimato: {predicted}]")
-    st.dataframe(similar, hide_index=True, width="stretch")
     words = ", ".join(drivers["parola"].head(4))
-    summary = f"Impatto stimato **{predicted}**. Le parole che hanno pesato di più: {words}."
+    summary = f"Impatto stimato **{predicted}**. Parole decisive: {words}."
+    if second is not None:
+        opinion = "concorda" if second[0] == predicted else f"stima invece {second[0]}"
+        summary += (f" Il modello semantico {opinion}. Bollettini più simili: "
+                    + "; ".join(second[2]["titolo"].head(3)) + ".")
     st.markdown(summary)
     return summary
 
@@ -251,7 +267,25 @@ def cerca(data: ActiveDataset, question: str, threshold: float | None, replay: b
     return norme(data, question, threshold, replay) + " " + minacce(data, question, threshold, replay)
 
 
+def statistica(data: ActiveDataset, question: str, threshold: float | None, replay: bool, key: str = "") -> str:
+    st.markdown(
+        "**Il segnale non sembra casuale.** Il numero più alto arriva dopo nel **93%** dei casi; "
+        "mescolando i dati accade nel **50%**, come il lancio di una moneta. Tra due giorni consecutivi la continuità "
+        "è **32%**, contro **9%** nei dati mescolati."
+    )
+    st.info(
+        "In parole semplici: LOGINCOUNT conserva memoria nel tempo. Non sappiamo però se rappresenti una persona, "
+        "un dispositivo o altro; serve il dizionario dati di Roma Capitale.",
+        icon=":material/lightbulb:",
+    )
+    st.caption("Metodo e test completi: Verifica → Il caso LOGINCOUNT → Validazione statistica.")
+    return (
+        "LOGINCOUNT conserva memoria nel tempo: ordine 93% contro 50% casuale; continuità tra giorni 32% contro 9%. "
+        "Il risultato non identifica persone e il significato del campo deve essere confermato da Roma Capitale."
+    )
+
+
 ANSWERS: dict[str, Callable[..., str]] = {
     "verifica": verifica, "correggi": correggi, "minacce": minacce, "norme": norme, "spiega": spiega,
-    "rapporto": rapporto, "allarme": allarme, "aiuto": aiuto, "cerca": cerca,
+    "rapporto": rapporto, "allarme": allarme, "aiuto": aiuto, "cerca": cerca, "statistica": statistica,
 }

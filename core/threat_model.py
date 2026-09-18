@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
@@ -109,3 +110,76 @@ def explain(model: Pipeline, text: str, top_n: int = 8) -> tuple[str, pd.DataFra
         "spinta verso la classe": contribution.data[order],
     })
     return str(classifier.classes_[best]), drivers[drivers["spinta verso la classe"] > 0]
+
+
+def _temporal_split(df: pd.DataFrame, test_share: float = 0.25) -> tuple[pd.DataFrame, pd.DataFrame]:
+    frame = df.assign(_data=_dates(df), _testo=bulletin_text(df)).dropna(subset=["_data", LABEL]).sort_values("_data")
+    cut = int(len(frame) * (1 - test_share))
+    train, test = frame.iloc[:cut], frame.iloc[cut:]
+    return train, test[test[LABEL].isin(train[LABEL].unique())]
+
+
+def compare_models(df: pd.DataFrame) -> pd.DataFrame:
+    """Stesso split temporale per il modello a parole (TF-IDF) e per quello semantico (embedding locali)."""
+    from core.semantic import embed_cached
+
+    train, test = _temporal_split(df)
+    rows = []
+    lexical = Pipeline([
+        ("tfidf", _vectorizer()),
+        ("model", LogisticRegression(max_iter=2000, class_weight="balanced", random_state=42)),
+    ]).fit(train["_testo"], train[LABEL])
+    predicted = lexical.predict(test["_testo"])
+    rows.append(("Parole (TF-IDF + regressione logistica)", predicted, test[LABEL]))
+
+    vectors = embed_cached(pd.concat([train["_testo"], test["_testo"]]).tolist())
+    if vectors is not None:
+        semantic = LogisticRegression(max_iter=3000, class_weight="balanced", C=2.0, random_state=42)
+        semantic.fit(vectors[: len(train)], train[LABEL])
+        rows.append(("Significato (embedding bge-m3 + regressione logistica)", semantic.predict(vectors[len(train):]), test[LABEL]))
+
+    majority = train[LABEL].value_counts().idxmax()
+    rows.append(("Classe più frequente (riferimento)", np.array([majority] * len(test)), test[LABEL]))
+    return pd.DataFrame([
+        {
+            "modello": name,
+            "accuratezza bilanciata": balanced_accuracy_score(truth, predicted),
+            "F1 ponderato": f1_score(truth, predicted, average="weighted", zero_division=0),
+            "bollettini di test": len(truth),
+        }
+        for name, predicted, truth in rows
+    ])
+
+
+@dataclass(frozen=True)
+class SemanticImpactModel:
+    classifier: LogisticRegression
+    vectors: np.ndarray
+    frame: pd.DataFrame
+
+
+def train_semantic(df: pd.DataFrame) -> SemanticImpactModel | None:
+    from core.semantic import embed_cached
+
+    frame = df.dropna(subset=[LABEL]).reset_index(drop=True)
+    vectors = embed_cached(bulletin_text(frame).tolist())
+    if vectors is None:
+        return None
+    classifier = LogisticRegression(max_iter=3000, class_weight="balanced", C=2.0, random_state=42)
+    classifier.fit(vectors, frame[LABEL])
+    return SemanticImpactModel(classifier, vectors, frame)
+
+
+def predict_semantic(model: SemanticImpactModel, text: str, neighbours: int = 3) -> tuple[str, float, pd.DataFrame] | None:
+    """Classe stimata, probabilità e bollettini storici più simili per significato (la spiegazione)."""
+    from core.semantic import embed_cached
+
+    vector = embed_cached([text])
+    if vector is None:
+        return None
+    probabilities = model.classifier.predict_proba(vector)[0]
+    best = int(np.argmax(probabilities))
+    similarity = model.vectors @ vector[0]
+    order = np.argsort(similarity)[::-1][:neighbours]
+    similar = model.frame.loc[order, ["codice", "titolo", LABEL]].assign(somiglianza=similarity[order].round(3))
+    return str(model.classifier.classes_[best]), float(probabilities[best]), similar

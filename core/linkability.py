@@ -1,5 +1,5 @@
 """Ricerca di pseudonimi nascosti: colonne numeriche che, in dati dichiarati anonimi,
-si comportano come contatori legati alla stessa persona e rendono le righe collegabili."""
+mostrano memoria temporale compatibile con un contatore persistente."""
 
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ def test_counter(
     max_step: int = 3,
     seed: int = 42,
 ) -> CounterEvidence:
-    """Verifica se `column` cresce nel tempo come un contatore personale.
+    """Verifica se `column` mostra l'ordine temporale atteso da un contatore persistente.
 
     Dentro ogni gruppo (giorno + colonne di contesto) ordina le righe per orario e conta
     le coppie di valori vicini. Se il valore più alto arriva quasi sempre dopo, la colonna

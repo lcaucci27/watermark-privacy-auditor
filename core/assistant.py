@@ -37,10 +37,16 @@ INTENT_EXAMPLES: dict[str, tuple[str, ...]] = {
         "fammi il rapporto", "report per il dpo", "riassunto completo", "esegui l'audit completo",
         "scarica il documento", "prepara la relazione",
     ),
+    "statistica": (
+        "mostrami l'analisi statistica", "è statisticamente significativo?", "qual è il p-value",
+        "intervallo di confidenza", "anova", "quale fattore conta di più", "dimostralo con i test",
+    ),
     "aiuto": ("cosa sai fare", "aiuto", "come ti uso", "quali domande posso fare", "ciao"),
 }
 ALERT_HINT = re.compile(r"CVE-\d{4}-\d+|vulnerabilit|sfruttament|exploit|patch|aggiornamento di sicurezza", re.IGNORECASE)
 THRESHOLD = re.compile(r"(\d{1,2})\s*%")
+SEMANTIC_MIN = 0.55
+LEXICAL_STRONG = 0.50
 
 
 @dataclass(frozen=True)
@@ -48,12 +54,15 @@ class Intent:
     name: str
     confidence: float
     threshold: float | None
+    method: str = "parole"
 
 
 class IntentRouter:
     def __init__(self) -> None:
         self.labels = [name for name, examples in INTENT_EXAMPLES.items() for _ in examples]
         phrases = [phrase for examples in INTENT_EXAMPLES.values() for phrase in examples]
+        self.phrases = phrases
+        self.example_vectors = None
         # N-grammi di caratteri: tollerano refusi e flessioni ("correggi", "correggilo", "correzione").
         self.vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), strip_accents="unicode", lowercase=True)
         self.matrix = self.vectorizer.fit_transform(phrases)
@@ -66,6 +75,27 @@ class IntentRouter:
             return Intent("allarme", 1.0, threshold)
         scores = (self.matrix @ self.vectorizer.transform([text]).T).toarray().ravel()
         best = int(np.argmax(scores))
+        # Parole inequivocabili come "Garante" o "correggilo" non vanno scavalcate da una vicinanza semantica.
+        if scores[best] >= LEXICAL_STRONG:
+            return Intent(self.labels[best], float(scores[best]), threshold, "parole")
+        semantic = self._semantic(text)
+        if semantic is not None:
+            return Intent(semantic[0], semantic[1], threshold, "significato")
         if scores[best] < 0.18:
-            return Intent("cerca", float(scores[best]), threshold)
-        return Intent(self.labels[best], float(scores[best]), threshold)
+            return Intent("cerca", float(scores[best]), threshold, "parole")
+        return Intent(self.labels[best], float(scores[best]), threshold, "parole")
+
+    def _semantic(self, text: str) -> tuple[str, float] | None:
+        """Vicino più simile per significato (embedding locali); None se Ollama non è disponibile."""
+        from core.semantic import embed_cached
+
+        if self.example_vectors is None:
+            self.example_vectors = embed_cached(self.phrases)
+        query = embed_cached([text]) if self.example_vectors is not None else None
+        if query is None:
+            return None
+        similarity = self.example_vectors @ query[0]
+        best = int(np.argmax(similarity))
+        if similarity[best] < SEMANTIC_MIN:
+            return "cerca", float(similarity[best])
+        return self.labels[best], float(similarity[best])

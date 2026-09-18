@@ -10,8 +10,9 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from core.privacy_optimizer import explore, pareto
+from core.semantic import HybridIndex, build_hybrid, split_passages
 from core.text_corpus import TextIndex, build_index
-from core.threat_model import LABEL, bulletin_text, train_threat_model
+from core.threat_model import LABEL, bulletin_text, train_semantic, train_threat_model
 from core.wifi_dataset import prepare
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -108,3 +109,27 @@ def frontier_chart(table: pd.DataFrame, max_risk: float, chosen: pd.Series | Non
         margin=dict(l=20, r=20, t=60, b=20), legend=dict(orientation="h", y=-0.25),
     )
     return figure
+
+
+@st.cache_resource(show_spinner="Calcolo dei vettori semantici dei bollettini…")
+def csirt_hybrid(texts: tuple[str, ...]) -> HybridIndex:
+    return build_hybrid(pd.Series(texts))
+
+
+@st.cache_resource(show_spinner="Calcolo dei vettori semantici dei provvedimenti…")
+def garante_passages() -> tuple[pd.DataFrame, HybridIndex] | None:
+    """Provvedimenti divisi in passaggi: ogni risultato di ricerca è già una citazione."""
+    frame = load_csv(str(GARANTE_FILE))
+    if frame is None:
+        return None
+    rows = [
+        {"titolo": row.titolo, "url": row.url, "passaggio": passage}
+        for row in frame.itertuples() for passage in split_passages(row.testo)
+    ]
+    passages = pd.DataFrame(rows)
+    return passages, build_hybrid(passages["passaggio"])
+
+
+@st.cache_resource(show_spinner="Addestramento del modello semantico di impatto…")
+def semantic_impact_model(csirt: pd.DataFrame):
+    return train_semantic(csirt)

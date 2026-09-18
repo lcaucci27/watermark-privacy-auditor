@@ -60,13 +60,13 @@ def run_audit(
     scan = scan_counters(wifi, wifi["inizio"], ["sede", "DTLN"], location="sede")
     report.flagged = scan[scan["esito"] == "Pseudonimo probabile"]
     if report.flagged.empty:
-        report.steps.append(AuditStep("Pseudonimi nascosti", "Nessuna colonna si comporta come contatore personale.", True))
+        report.steps.append(AuditStep("Pseudonimi nascosti", "Nessuna colonna mostra memoria da contatore persistente.", True))
     else:
         row = report.flagged.iloc[0]
         report.steps.append(AuditStep(
             "Pseudonimi nascosti",
             f"{row['colonna']}: tra valori vicini il più alto arriva dopo nel {row['ordine nel tempo']:.1%} dei casi "
-            f"(valori mescolati: {row['ipotesi nulla']:.1%}). Le sessioni della stessa persona sono collegabili.",
+            f"(valori mescolati: {row['ipotesi nulla']:.1%}). Esiste un rischio di correlabilità da chiarire con l'ente.",
             False,
         ))
 

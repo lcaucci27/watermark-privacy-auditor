@@ -37,16 +37,16 @@ Frontend e backend girano nello stesso processo Python: Streamlit fa da server w
 - lingua del dispositivo (`DTLN`);
 - `LOGINCOUNT`, un intero da 1 a oltre 100.000.
 
-**La falla.** `LOGINCOUNT` si comporta come **il numero cumulativo di accessi dello stesso utente**. Tra due sessioni della stessa persona cambia di poche unità e sale sempre nel tempo. Quindi funziona come **pseudonimo persistente**: permette di collegare le sessioni di una persona tra ore e giorni. Ciascuna sessione riporta luogo al civico e orario al secondo.
+**La falla.** `LOGINCOUNT` mostra memoria temporale e continuità tra giorni molto superiori a quelle ottenute permutando i valori. È quindi **compatibile con un contatore persistente** e crea un rischio concreto di correlabilità. Non è però dimostrato che sia il numero cumulativo dello stesso utente: questa interpretazione richiede il data dictionary o una conferma di Roma Capitale. Ciascuna sessione riporta inoltre luogo al civico e orario al secondo.
 
 Nei termini del Gruppo di lavoro Articolo 29 (Parere 05/2014 sulle tecniche di anonimizzazione), un dataset è anonimo solo se impedisce tre cose: **individuazione** (singling out), **correlabilità** (linkability) e **deduzione** (inference). Qui falliscono le prime due. Per il considerando 26 del GDPR, dati collegabili a una persona con mezzi ragionevoli sono dati **pseudonimizzati**, quindi ancora personali, non anonimi.
 
 **Prove.** Misurate su 13 file consecutivi, dal 31/08 al 17/09/2026: 21.531 sessioni, 128 sedi. Ogni test è confrontato con un'ipotesi nulla in cui i valori di `LOGINCOUNT` sono mescolati a caso (seed 42).
 
-| Test | Previsione se è un contatore per utente | Reale | Nulla |
+| Test | Previsione se conserva memoria nel tempo | Reale | Nulla |
 |---|---|---|---|
-| T2 · ordine nel tempo | Nella stessa sede e lingua, tra due valori che differiscono di 1-3, il più alto arriva dopo | **92,8%** (23.930/25.790) | 49,8% |
-| T1 · continuità tra giorni | Un valore di oggi riappare domani nella stessa sede e lingua, aumentato di 0-5 | **35,8%** | 11,3% |
+| T2 · ordine nel tempo | Nella stessa sede e lingua, tra due valori che differiscono di 1-3, il più alto arriva dopo | **92,7% medio su 13 giorni** | 49,5% permutato; Wilcoxon p = 0,00012 |
+| T1 · continuità tra giorni | Un valore di oggi riappare domani nella stessa sede e lingua, aumentato di 0-5 | **32,1%** | 9,3% permutato; p empirico = 0,002 |
 | T3 · esclusione dell'ipotesi "contatore di sede" | Se fosse un contatore della sede, dentro la sede crescerebbe sempre | cresce solo nel **49%** dei passi (63 sedi) | – |
 | Individuazione | Sessioni uniche su giorno, orario al secondo, sede e lingua | **98,8%** | – |
 | Correzione | Sessioni uniche su giorno, ora, municipio e lingua | **4,0%** | – |
@@ -64,7 +64,7 @@ Spike precedente (01/01 e 02/04/2026, 1.803 sessioni): 270 coppie (v, v+1) nella
 3. municipio al posto del civico;
 4. rimisurare: le sessioni uniche passano dal 98,8% al 4,0%.
 
-**In una frase per la giuria:** "Roma pubblica ogni giorno i dati del WiFi pubblico come anonimi. Una colonna non documentata funziona da pseudonimo e permette di seguire la stessa persona tra giorni e luoghi. Watermark la trova da solo, la misura e propone la correzione."
+**In una frase per la giuria:** "Roma pubblica ogni giorno i dati del WiFi pubblico come anonimi. Watermark trova una colonna non documentata con memoria temporale e continuità tra giorni, ne misura il rischio di correlabilità e propone una versione pubblicabile più prudente."
 
 ## Traccia ufficiale
 
@@ -94,8 +94,8 @@ Nessuna delle due fonti pubblica un CSV. Il dataset va costruito da pagine web, 
 - "Sessioni anonimizzate di navigazione web riscontrate nel sistema WiFi di Roma Capitale", Anno 2026, 252 CSV giornalieri. API: `https://dati.comune.roma.it/catalog/api/3/action/package_show?id=de455e3a-d8ef-48a0-a725-832234c7217c`.
 - Colonne: `STARTDATE, STARTTIME, ENDDATE, ENDTIME, DURATION, DOWNLOAD, UPLOAD, DOMAIN, LOGINCOUNT, MUNICIPIO, DUG, DUF, CIVICO, LOCALITA, SERVICEPROFILE, DTLN`.
 - Spike su 2 giorni (01/01 e 02/04/2026, 1.803 sessioni, 32 sedi):
-  - `LOGINCOUNT` non è un contatore di sede (dentro una sede cresce solo nel 35-47% dei casi); si comporta come contatore di login **per utente**: 270 coppie (v, v+1) nella stessa sede e lingua contro 1 nel confronto casuale (v, v+1000). Es. Circonvallazione Trionfale 19: 10116 → 10118 in 10 sessioni in 6 minuti.
-  - Conseguenza: pseudonimo persistente, collegabile tra giorni e sedi (172 valori in più sedi lo stesso giorno).
+  - `LOGINCOUNT` non è spiegato come contatore di sede (dentro una sede cresce solo nel 35-47% dei casi); è compatibile con un contatore persistente: 270 coppie (v, v+1) nella stessa sede e lingua contro 1 nel controllo storico usato nello spike. Es. Circonvallazione Trionfale 19: 10116 → 10118 in 10 sessioni in 6 minuti.
+  - Conseguenza: rischio di correlabilità da verificare con il data dictionary; 172 valori compaiono in più sedi nello stesso giorno.
   - Unicità su (orario al secondo, sede, lingua): 99,7%. Su (ora, municipio, lingua): 7,2%.
   - È un'inferenza statistica non confermata dall'ente. Non identificare persone; riportare solo misure aggregate; presentarla come segnalazione costruttiva.
 
@@ -108,7 +108,7 @@ Nessuna delle due fonti pubblica un CSV. Il dataset va costruito da pagine web, 
 
 Prodotto: **Watermark, auditor per il DPO comunale**. Percorso demo:
 
-1. **Dati pubblicati (Roma WiFi)**: rischio re-identificazione sulle colonne reali; test automatico "pseudonimo nascosto" (colonne che si comportano come contatori per utente); correzione (fasce orarie, municipio invece del civico, rimozione `LOGINCOUNT`) e rimisura; mappa hotspot.
+1. **Dati pubblicati (Roma WiFi)**: rischio re-identificazione sulle colonne reali; test automatico di memoria temporale per possibili contatori persistenti; correzione (fasce orarie, municipio invece del civico, rimozione `LOGINCOUNT`) e rimisura; mappa hotspot.
 2. **Minacce (CSIRT)**: modello TF-IDF + regressione logistica su "Impatto sistemico", applicato ad hotspot, controller WiFi, captive portal.
 3. **Norme (Garante)**: passaggi citati alla lettera su anonimizzazione, localizzazione, WiFi pubblico.
 4. **Dati**: `scripts/fetch_data.py` (solo stdlib `urllib`, pausa tra richieste) scarica CSIRT (RSS + pagine), Garante (lista docweb), alcuni giorni Roma WiFi in `data/`.
@@ -149,3 +149,22 @@ Prodotto: **Watermark, auditor per il DPO comunale**. Percorso demo:
 
 **Percorso demo (3 minuti):** Assistente → "Questo dataset è pubblicabile?" → "Perché è un problema?" → "Correggilo sotto il 15%" → "Quali sistemi sono a rischio?" → incollare un allarme CSIRT → "Fammi il rapporto".
 Prima del pitch: avviare l'app e fare una volta "Correggilo" per popolare la cache (circa 45 secondi alla prima esecuzione).
+
+## Aggiornamento 18/09/2026 ore 13:00: IA locale avanzata e analisi statistica
+
+**Ollama (locale, http://localhost:11434)**: modelli `bge-m3` (embedding multilingue), `qwen2.5:3b` e `qwen2.5:7b` (LLM). Installazione sul Mac del collega: installare Ollama, poi `ollama pull bge-m3 && ollama pull qwen2.5:3b && ollama pull qwen2.5:7b`. Senza Ollama l'app ricade su TF-IDF e sulle risposte calcolate.
+- `core/local_ai.py`: client stdlib per embedding e chat in streaming; prompt vincolato ai risultati calcolati (temperatura 0).
+- `core/semantic.py`: ricerca ibrida embedding + TF-IDF con Reciprocal Rank Fusion; cache versionata in `data/.emb_store_bge_m3.npz`. Gli aggiornamenti sono atomici e salvano un checkpoint ogni 32 testi, quindi app e pre-calcolo possono lavorare insieme senza perdere vettori.
+- `python scripts/precompute_embeddings.py`: completa e verifica la cache di bollettini, passaggi del Garante e frasi d’intenzione; `--only garante` limita il lavoro ai provvedimenti.
+- `core/assistant.py`: intenzioni per significato (vicino più simile, soglia 0,55) con ricaduta su n-grammi.
+- `core/threat_model.py`: `compare_models` (TF-IDF contro embedding sullo stesso split temporale), `train_semantic`/`predict_semantic` con bollettini storici più simili come spiegazione.
+- Garante diviso in passaggi di ~700 caratteri: la ricerca restituisce direttamente citazioni (RAG locale).
+- Nella chat, barra laterale "Modello linguistico": risultati calcolati (default, immediato), qwen2.5:3b, qwen2.5:7b e Claude se c'è la chiave. Sul computer Windows di prova una risposta ha richiesto 30,6 s con 3B e 62,2 s con 7B, quindi Qwen resta facoltativo nella demo.
+
+**Analisi statistica** (`core/stats_analysis.py`, pagina `app_pages/analisi.py`), metodi del corso di performance analysis:
+- Descrittiva: DURATION media 4.801 s, mediana 288 s, asimmetria 2,5 → si usano mediana e SIQR.
+- Test binomiale su LOGINCOUNT (H₀ p = 0,5): 92,8% su 25.711 coppie, p < 10⁻³⁰⁰.
+- Mann-Kendall per sede: trend crescente forte solo in 7 sedi su 64 → non è un contatore di sede.
+- IC 95% t-Student delle sessioni uniche su 13 giorni: 98,9% [98,6–99,2].
+- DoE fattoriale 4×3×3 con i giorni come repliche + ANOVA a tre fattori: orario 73,7% della variabilità, contatore 17,5%, orario×contatore 5,8%, luogo 1,1%. Conclusione: basta arrotondare l'orario; l'indirizzo si può mantenere.
+- Confronto appaiato prima/dopo (3 ore · civico · contatore in fasce): −84,4 punti, IC 95% [82,4–86,5]; Shapiro rifiuta la normalità (p = 0,0007), quindi Wilcoxon signed-rank p = 0,00024.

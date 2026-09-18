@@ -7,3 +7,5 @@ __pycache__/
 data/private/
 .agents/
 data/.varianti_*.csv
+data/.emb_[0-9a-f]*.npy
+data/.emb_store_*.tmp.npz

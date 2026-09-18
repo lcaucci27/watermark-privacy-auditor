@@ -6,17 +6,17 @@ Questo documento raccoglie le decisioni da prendere dopo l’annuncio della trac
 
 | Campo | Risposta del team |
 |---|---|
-| Keyword o tema |  |
-| Utente principale |  |
-| Decisione che deve prendere |  |
-| Problema osservabile |  |
-| Dataset assegnato |  |
-| Unità di analisi |  |
-| Target, se disponibile |  |
-| Metrica tecnica |  |
-| Metrica operativa |  |
-| Vincolo più rilevante |  |
-| Output mostrato in demo |  |
+| Keyword o tema | Privacy; sicurezza dei dati IoT e identità digitali nelle smart city |
+| Utente principale | DPO comunale, con ufficio open data e referente cybersicurezza |
+| Decisione che deve prendere | Pubblicare, correggere o sospendere un dataset di telemetria urbana |
+| Problema osservabile | Il 99,5% delle sessioni WiFi è individuabile; LOGINCOUNT è non documentato e temporalmente ordinato |
+| Dataset assegnato | Bollettini CSIRT Italia e provvedimenti del Garante; mashup con open data WiFi Roma Capitale |
+| Unità di analisi | Singola sessione WiFi; bollettino CSIRT; passaggio di un provvedimento |
+| Target, se disponibile | Impatto sistemico CSIRT; per la privacy, quota di sessioni uniche e utilità residua |
+| Metrica tecnica | k minimo, sessioni uniche %, Wilcoxon/permutazione, balanced accuracy, utilità relativa |
+| Metrica operativa | Dataset bloccato o corretto prima della pubblicazione; gruppi pubblicati con k ≥ 5 |
+| Vincolo più rilevante | Nessuna re-identificazione; elaborazione locale; semantica LOGINCOUNT non confermata |
+| Output mostrato in demo | Esito pubblicabilità, prove, CSV aggregato e rapporto per il DPO con fonti |
 
 La frase guida deve contenere soggetto, azione e risultato misurabile:
 

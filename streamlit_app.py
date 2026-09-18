@@ -15,9 +15,9 @@ st.logo(str(ASSETS / "logo.svg"), icon_image=str(ASSETS / "logo_mark.svg"), size
 
 page = st.navigation(
     [
-        st.Page("app_pages/assistente.py", title="Assistente", icon=":material/forum:", default=True),
-        st.Page("app_pages/rapporto.py", title="Rapporto per il DPO", icon=":material/description:"),
-        st.Page("app_pages/avanzate.py", title="Strumenti avanzati", icon=":material/tune:"),
+        st.Page("app_pages/verifica.py", title="Verifica", icon=":material/fact_check:", default=True),
+        st.Page("app_pages/assistente.py", title="Fai una domanda", icon=":material/forum:"),
+        st.Page("app_pages/rapporto.py", title="Rapporto", icon=":material/description:"),
     ],
     position="top",
 )
@@ -27,9 +27,8 @@ page.run()
 with st.sidebar:
     with st.expander("Chi siamo e come funziona", icon=":material/info:"):
         st.markdown(
-            "**Committente**: il Comune titolare dei dati; utente: il suo DPO.\n\n"
-            "**Frontend**: Streamlit. **Backend**: Python, pandas, scikit-learn, nello stesso processo.\n\n"
-            "**IA**: tutta locale. Claude è un'estensione facoltativa.\n\n"
-            "**Fonti**: CSIRT Italia (ACN), Garante privacy, open data di Roma Capitale."
+            "Watermark aiuta il Comune a controllare un dataset prima della pubblicazione.\n\n"
+            "I calcoli avvengono su questo computer e non cercano l'identità delle persone.\n\n"
+            "**Fonti:** Roma Capitale, CSIRT Italia e Garante privacy."
         )
     st.caption(CHALLENGE.event_line)

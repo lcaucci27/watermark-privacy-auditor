@@ -64,7 +64,7 @@ def render() -> None:
         st.subheader("Pseudonimi nascosti", icon=":material/fingerprint:")
         st.caption(
             "Per ogni colonna numerica: dentro stesso giorno, sede e lingua, tra valori che differiscono di 1-3, "
-            "quante volte il più alto arriva dopo? Un contatore personale supera l'80%; valori casuali restano intorno al 50%."
+            "quante volte il più alto arriva dopo? Un contatore persistente supera l'80%; valori casuali restano intorno al 50%."
         )
         scan = _scan(frame)
         st.dataframe(
@@ -89,9 +89,9 @@ def render() -> None:
             chart.update_layout(margin=MARGIN, yaxis_title="", xaxis_title="")
             st.plotly_chart(chart, width="stretch")
             st.error(
-                f"**{row['colonna']}** si comporta come un contatore di accessi personale: cresce nel tempo per la stessa "
-                "persona e non per la sede. Rende collegabili le sessioni della stessa persona tra ore e giorni "
-                "(correlabilità). La documentazione del dataset non descrive questa colonna.",
+                f"**{row['colonna']}** mostra memoria temporale compatibile con un contatore persistente e non con un "
+                "semplice contatore della sede. Può creare correlabilità tra sessioni, ma il test non dimostra che "
+                "appartengano alla stessa persona. La documentazione del dataset non descrive questa colonna.",
                 icon=":material/link:",
             )
 
