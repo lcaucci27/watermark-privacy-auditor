@@ -1,4 +1,4 @@
-# Handoff · Filigrana Privacy & Security Auditor
+# Handoff · Watermark Privacy & Security Auditor
 
 Stato al 18/09/2026, tappa di Napoli. Keyword sorteggiata: **privacy**. Tempo totale di sviluppo: circa 7 ore, con congelamento delle funzioni 90 minuti prima della consegna.
 
@@ -44,7 +44,7 @@ Nessuna delle due fonti pubblica un CSV. Il dataset va costruito da pagine web, 
 
 ## Design proposto (in attesa di approvazione finale)
 
-Prodotto: **Filigrana, auditor per il DPO comunale**. Percorso demo:
+Prodotto: **Watermark, auditor per il DPO comunale**. Percorso demo:
 
 1. **Dati pubblicati (Roma WiFi)**: rischio re-identificazione sulle colonne reali; test automatico "pseudonimo nascosto" (colonne che si comportano come contatori per utente); correzione (fasce orarie, municipio invece del civico, rimozione `LOGINCOUNT`) e rimisura; mappa hotspot.
 2. **Minacce (CSIRT)**: modello TF-IDF + regressione logistica su "Impatto sistemico", applicato ad hotspot, controller WiFi, captive portal.
@@ -67,6 +67,6 @@ Prodotto: **Filigrana, auditor per il DPO comunale**. Percorso demo:
 
 ## Identità (aggiunta)
 
-- Nome: **Filigrana**. Una filigrana è un segno nascosto nella carta, visibile solo in controluce: come `LOGINCOUNT` nei dati "anonimi" di Roma WiFi.
+- Nome: **Watermark** (in italiano "filigrana"). Una filigrana è un segno nascosto nella carta, visibile solo in controluce: come `LOGINCOUNT` nei dati "anonimi" di Roma WiFi.
 - Logo: griglia 3×3 di record in acquamarina `#1F6B69`, uno in corallo `#A63F2E` (il record che si distingue dagli altri, cioè re-identificabile), su avorio `#F7F3E8` con bordo antracite `#17282B`.
 - File: `assets/logo.svg` (segno + nome), `assets/logo_mark.svg`, `assets/logo_mark.png`, `assets/favicon.png`. Collegati in `streamlit_app.py` con `st.logo` e `page_icon`; testi in `core/challenge_config.py`.
