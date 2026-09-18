@@ -24,18 +24,22 @@ OTHER = "Altro"
 DIRECT_KEYS = (
     "nome", "cognome", "name", "surname", "email", "mail", "telefono", "phone", "cellulare",
     "mobile", "codice_fiscale", "codicefiscale", "fiscal", "iban", "indirizzo", "address",
-    "ssn", "passaporto", "passport", "targa", "plate", "documento", "username", "ip",
+    "ssn", "passaporto", "passport", "targa", "plate", "documento", "username", "ip", "mac_address",
+    "macaddress", "device_id", "deviceid", "id_utente", "userid", "user_id", "session_id", "cookie",
 )
 QUASI_KEYS = (
     "eta", "age", "sesso", "genere", "gender", "sex", "cap", "zip", "postal", "comune", "city",
     "citta", "provincia", "province", "municipalita", "quartiere", "nascita", "birth", "nazionalita",
     "nationality", "cittadinanza", "professione", "occupation", "lavoro", "job", "titolo_studio",
-    "istruzione", "education", "stato_civile", "marital", "residenza", "zona", "municipio",
+    "istruzione", "education", "stato_civile", "marital", "residenza", "zona", "municipio", "data",
+    "date", "giorno", "day", "ora", "time", "timestamp", "latitudine", "latitude", "longitudine",
+    "longitude", "coordinate", "geopoint", "geo_point", "sede", "luogo", "location",
 )
 SENSITIVE_KEYS = (
     "salute", "health", "diagnosi", "diagnosis", "malattia", "disease", "patologia", "religione",
     "religion", "etnia", "ethnic", "orientamento", "politic", "sindacato", "union", "reddito",
     "income", "salary", "stipendio", "disabilita", "disability", "farmaco", "terapia", "condanna",
+    "servizi_sociali", "assistenza", "fragilita", "vulnerabilita", "minore", "penale", "biometr",
 )
 
 # Pattern sui valori: una colonna con nome neutro può comunque contenere dati personali.
@@ -57,6 +61,10 @@ def _matches(name: str, keys: tuple[str, ...]) -> str | None:
     plain, tokens = _tokens(name)
     joined = "_".join(tokens)
     for key in keys:
+        if key in {"nome", "name"} and set(tokens) & {
+            "zona", "sede", "luogo", "area", "quartiere", "municipio", "comune", "city", "location"
+        }:
+            continue
         # Le chiavi corte ("ip", "cap", "eta") producono falsi positivi come sottostringhe.
         if (len(key) <= 3 and key in tokens) or (len(key) > 3 and key in joined):
             return key

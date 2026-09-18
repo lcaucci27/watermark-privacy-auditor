@@ -10,8 +10,11 @@ import pandas as pd
 import streamlit as st
 
 from core.audit_agent import INFRASTRUCTURE_QUERY, RULE_QUERY, run_audit
+from core.generic_privacy import (
+    audit_generic, infer_granularity, protect_generic, report_markdown as generic_report, suggested_roles,
+)
 from core.linkability import scan_counters
-from core.privacy import DIRECT, QUASI, SENSITIVE, anonymize, classify_columns, reidentification_risk
+from core.privacy import DIRECT, SENSITIVE, classify_columns
 from core.privacy_optimizer import Variant, publish, recommend
 from core.semantic import hybrid_search
 from core.threat_model import bulletin_text, explain, predict_semantic
@@ -72,17 +75,29 @@ def _verifica_generica(data: ActiveDataset, replay: bool) -> str:
     with _step("Classifico le colonne per tipo di dato personale", replay):
         scan = classify_columns(data.frame)
         st.dataframe(scan, hide_index=True, width="stretch")
-    quasi = scan.loc[scan["categoria"] == QUASI, "variabile"].tolist()
+    direct, quasi, sensitive = suggested_roles(data.frame)
+    granularity = infer_granularity(data.frame)
+    row_kind = data.row_kind_hint or granularity.kind
+    measure = granularity.measures[0] if granularity.measures else None
+    audit = audit_generic(
+        data.frame, row_kind, direct, quasi, sensitive[0] if sensitive else None, 5, measure, "pubblicazione"
+    )
     counts = scan["categoria"].value_counts()
     c1, c2, c3 = st.columns(3)
     c1.metric("Identificativi diretti", int(counts.get(DIRECT, 0)), border=True)
     c2.metric("Quasi-identificativi", len(quasi), border=True)
     c3.metric("Dati sensibili", int(counts.get(SENSITIVE, 0)), border=True)
-    summary = f"Ho trovato {int(counts.get(DIRECT, 0))} identificativi diretti e {len(quasi)} quasi-identificativi."
-    if quasi:
-        with _step("Misuro quante righe sono uniche sui quasi-identificativi", replay):
-            risk = reidentification_risk(data.frame, quasi, 5).metrics
-        summary += f" Il {risk['Righe uniche %']}% delle righe è unico su {', '.join(quasi)}."
+    summary = f"Esito: **{audit.outcome}**. Ho trovato {len(direct)} identificativi diretti e {len(quasi)} quasi-identificativi."
+    if row_kind == "aggregato":
+        summary += (
+            f" Il file descrive celle aggregate; controllo i conteggi piccoli, non l’unicità delle righe. "
+            f"Celle sotto 5: {audit.metrics.get('Celle sotto soglia', 'da verificare')}."
+        )
+    elif quasi:
+        summary += f" Righe uniche sui quasi-identificativi: {audit.metrics.get('Righe uniche %', 'da verificare')}%."
+    st.markdown(f":{'green' if audit.outcome == 'Compatibile con pubblicazione' else 'red'}-badge[{audit.outcome}]")
+    for reason in audit.reasons:
+        st.caption(reason)
     st.markdown(summary)
     return summary
 
@@ -90,16 +105,21 @@ def _verifica_generica(data: ActiveDataset, replay: bool) -> str:
 def correggi(data: ActiveDataset, question: str, threshold: float | None, replay: bool, key: str = "") -> str:
     max_risk = threshold or DEFAULT_RISK
     if not data.is_wifi:
-        quasi = classify_columns(data.frame).query("categoria == @QUASI")["variabile"].tolist()
-        direct = classify_columns(data.frame).query("categoria == @DIRECT")["variabile"].tolist()
-        if not quasi:
-            st.markdown("Non ho trovato quasi-identificativi da generalizzare.")
-            return "Nessuna correzione necessaria sui quasi-identificativi."
-        with _step("Generalizzo i quasi-identificativi fino a 5 righe per gruppo", replay):
-            result = anonymize(data.frame, direct, quasi, 5)
-        st.download_button("Scarica il file corretto", result.data.to_csv(index=False).encode("utf-8"),
+        direct, quasi, _ = suggested_roles(data.frame)
+        granularity = infer_granularity(data.frame)
+        row_kind = data.row_kind_hint or granularity.kind
+        measure = granularity.measures[0] if granularity.measures else None
+        if row_kind == "individuale" and not quasi:
+            st.markdown("Devi indicare almeno una colonna che un estraneo potrebbe già conoscere.")
+            return "Manca la scelta dei quasi-identificativi."
+        action = "Sopprimo i conteggi piccoli" if row_kind == "aggregato" else "Generalizzo fino a 5 righe per gruppo"
+        with _step(action, replay):
+            corrected, log = protect_generic(data.frame, row_kind, direct, quasi, 5, measure)
+        st.download_button("Scarica il file corretto", corrected.to_csv(index=False).encode("utf-8"),
                            "dataset_corretto.csv", "text/csv", icon=":material/download:", key=f"dlg_{key}")
-        return " ".join(result.log)
+        summary = " ".join(log) or "Il file non richiede trasformazioni automatiche con le impostazioni rilevate."
+        st.markdown(summary)
+        return summary
 
     with _step("Genero 36 versioni del dataset (orario, luogo, contatore)", replay):
         st.caption("Orario al secondo, 15 minuti, 1 ora, 3 ore · civico, via, municipio · contatore pubblicato, in fasce, rimosso.")
@@ -135,16 +155,18 @@ def minacce(data: ActiveDataset, question: str, threshold: float | None, replay:
         st.markdown("Non trovo i bollettini CSIRT in `data/`.")
         return "Bollettini non disponibili."
     index = csirt_hybrid(tuple(bulletin_text(csirt)))
+    context = INFRASTRUCTURE_QUERY if data.is_wifi else " ".join(map(str, data.frame.columns)) + " sistemi comunali applicazione database"
     mode = "per significato e per parole" if index.semantic else "per parole"
     with _step(f"Cerco tra {len(csirt):,} bollettini CSIRT, {mode}", replay):
-        hits = hybrid_search(index, f"{question} {INFRASTRUCTURE_QUERY}", 8)
+        hits = hybrid_search(index, f"{question} {context}", 8)
     table = csirt.loc[hits.index, ["codice", "titolo", "impatto_classe", "n_cve_sfruttate"]].rename(
         columns={"impatto_classe": "impatto ACN", "n_cve_sfruttate": "CVE sfruttate"})
     critical = int((table["impatto ACN"] == "Critico").sum())
     exploited = int((table["CVE sfruttate"].fillna(0) > 0).sum())
     st.markdown(f":orange-badge[:material/security: {len(table)} bollettini pertinenti]")
     st.dataframe(table, hide_index=True, width="stretch")
-    summary = (f"Sui sistemi che producono questi dati (access point, captive portal, accesso remoto) ci sono {len(table)} "
+    domain = "access point, captive portal e accesso remoto" if data.is_wifi else "i sistemi associati alle colonne del file"
+    summary = (f"Per {domain} ci sono {len(table)} "
                f"bollettini pertinenti: {critical} con impatto critico, {exploited} con vulnerabilità già sfruttate in rete.")
     st.markdown(summary)
     sources = "\n".join(f"[{i}] {row.codice} {row.titolo} (impatto {row._3})" for i, row in enumerate(table.itertuples(), 1))
@@ -192,8 +214,22 @@ Nessun documento ufficiale descrive questa colonna. Per stabilire se sia davvero
 
 def rapporto(data: ActiveDataset, question: str, threshold: float | None, replay: bool, key: str = "") -> str:
     if not data.is_wifi:
-        st.markdown("Il rapporto completo è disponibile per il dataset WiFi di esempio.")
-        return "Rapporto non disponibile per questo file."
+        direct, quasi, sensitive = suggested_roles(data.frame)
+        granularity = infer_granularity(data.frame)
+        row_kind = data.row_kind_hint or granularity.kind
+        measure = granularity.measures[0] if granularity.measures else None
+        with _step("Preparo la valutazione portabile sullo schema del file", replay):
+            audit = audit_generic(
+                data.frame, row_kind, direct, quasi, sensitive[0] if sensitive else None, 5, measure, "pubblicazione"
+            )
+        markdown = generic_report(data.name, audit, 5)
+        st.download_button(
+            "Scarica il rapporto per il DPO", markdown.encode("utf-8"), "rapporto_watermark.md",
+            "text/markdown", icon=":material/description:", type="primary", key=f"rep_{key}",
+        )
+        summary = f"Rapporto pronto. Esito: {audit.outcome}. " + " ".join(audit.reasons[:2])
+        st.markdown(summary)
+        return summary
     csirt, csirt_index = csirt_corpus()
     garante, garante_index = garante_corpus()
     max_risk = threshold or DEFAULT_RISK
@@ -253,7 +289,7 @@ def aiuto(data: ActiveDataset, question: str, threshold: float | None, replay: b
     text = """Posso aiutarti a decidere se e come pubblicare un dataset:
 
 - *Questo dataset è pubblicabile?*: verifico se le persone sono riconoscibili e se ci sono pseudonimi nascosti.
-- *Correggilo sotto il 10%*: provo 36 versioni e scelgo quella che conserva più informazione.
+- *Correggilo*: per dati individuali generalizzo i quasi-identificativi; per aggregati sopprimo i conteggi piccoli.
 - *Quali sistemi sono a rischio?*: cerco nei bollettini CSIRT.
 - *Cosa dice il Garante?*: cito i provvedimenti parola per parola.
 - *Incolla il testo di un allarme*: stimo l'impatto e spiego perché.
@@ -268,6 +304,19 @@ def cerca(data: ActiveDataset, question: str, threshold: float | None, replay: b
 
 
 def statistica(data: ActiveDataset, question: str, threshold: float | None, replay: bool, key: str = "") -> str:
+    if not data.is_wifi:
+        frame = data.frame
+        missing = int(frame.isna().sum().sum())
+        duplicates = int(frame.duplicated().sum())
+        granularity = infer_granularity(frame)
+        text = (
+            f"Il file contiene **{len(frame):,} righe** e **{len(frame.columns)} colonne**; "
+            f"valori mancanti: **{missing:,}**, duplicati: **{duplicates:,}**. "
+            f"La struttura sembra **{'aggregata' if granularity.kind == 'aggregato' else 'a livello di evento o persona'}**."
+        )
+        st.markdown(text)
+        st.caption("Per una decisione privacy conferma prima che cosa rappresenta una riga e quali colonne sono conoscibili dall’esterno.")
+        return text
     st.markdown(
         "**Il segnale non sembra casuale.** Il numero più alto arriva dopo nel **93%** dei casi; "
         "mescolando i dati accade nel **50%**, come il lancio di una moneta. Tra due giorni consecutivi la continuità "

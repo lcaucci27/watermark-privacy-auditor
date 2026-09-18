@@ -6,10 +6,10 @@ import pandas as pd
 import streamlit as st
 
 from core.linkability import CounterEvidence, test_counter
-from core.privacy import DIRECT, QUASI, SENSITIVE, classify_columns
 from core.roma_privacy import aggregate_for_publication, findings, knowledge_ladder, report_markdown
 from core.stats_analysis import CrossDayEvidence, DailyOrderEvidence, cross_day_evidence, daily_order_evidence
 from views.dataset import sidebar_picker
+from views.generic_audit import render as render_generic_audit
 
 SOURCE_URL = "https://dati.comune.roma.it/catalog/dataset/wifi2026"
 
@@ -36,22 +36,7 @@ if data is None:
     st.stop()
 
 if not data.is_wifi:
-    scan = classify_columns(data.frame)
-    counts = scan["categoria"].value_counts()
-    st.info("Questo non è il dataset WiFi di Roma: applico il controllo tabellare generale.", icon=":material/info:")
-    cards = st.columns(4)
-    cards[0].metric("Righe", f"{len(data.frame):,}", border=True)
-    cards[1].metric("Identificativi", int(counts.get(DIRECT, 0)), border=True)
-    cards[2].metric("Quasi-identificativi", int(counts.get(QUASI, 0)), border=True)
-    cards[3].metric("Dati sensibili", int(counts.get(SENSITIVE, 0)), border=True)
-    with st.container(border=True):
-        st.subheader("Colonne da verificare", icon=":material/table_view:")
-        st.dataframe(scan, hide_index=True, width="stretch")
-    st.warning(
-        "Per un file diverso servono la scelta dei quasi-identificativi e del dato da proteggere. "
-        "Usa l'assistente per guidare il controllo.",
-        icon=":material/warning:",
-    )
+    render_generic_audit(data)
     st.stop()
 
 frame = data.frame
