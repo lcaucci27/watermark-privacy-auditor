@@ -1,31 +1,35 @@
 # Watermark
 
-Watermark aiuta il DPO di un Comune a decidere se un dataset urbano può essere pubblicato o deve restare nell'uso amministrativo. Analizza sia righe di eventi, come le sessioni del WiFi di Roma Capitale, sia tabelle aggregate, come l'affollamento WiFi di Bologna. Misura unicità, celle piccole e collegabilità con un secondo dataset, poi produce una versione protetta e un rapporto verificabile.
+Watermark helps a municipality's Data Protection Officer (DPO) decide whether an urban dataset can be published or must stay in administrative use. It analyses both event-level rows, such as the Roma Capitale WiFi sessions, and aggregated tables, such as the Bologna WiFi crowding data. It measures uniqueness, small cells and linkability with a second dataset, then produces a protected version and a verifiable report.
 
-Tutti i controlli essenziali girano in locale. L’app usa i dati di Roma Capitale, i bollettini CSIRT Italia e i provvedimenti del Garante privacy già inclusi in `data/`.
+All essential checks run locally. The app uses the Roma Capitale data, the CSIRT Italia bulletins and the Italian Data Protection Authority (Garante) rulings already included in `data/`.
 
-## Contesto
+The interface and the datasets are in Italian.
 
-Progetto sviluppato da un team di due persone al Campionato Universitario AI 2026, tappa di Napoli del 18 settembre 2026. Lo sviluppo è durato circa sette ore, con le funzioni congelate 90 minuti prima della consegna. La keyword sorteggiata era **privacy**. Il vincolo della gara era un prodotto che funziona offline, senza API a pagamento né chiavi.
+## Context
 
-## Committente e stack
+Built by a team of two at the Campionato Universitario AI 2026 (AI University Championship), Naples stage, 18 September 2026. Development took about seven hours, with features frozen 90 minutes before the deadline. The drawn keyword was **privacy**. The competition constraint was a product that runs offline, with no paid API and no keys.
 
-**Committente:** un Comune, nel ruolo di titolare del trattamento dei dati. Nella demo il caso è Roma Capitale, che pubblica i dati del WiFi pubblico DigitRoma. L'utente operativo è il DPO, affiancato dall'ufficio open data e dal referente per la cybersicurezza. La decisione supportata è se pubblicare un dataset e con quali correzioni. Il prodotto non è destinato a cittadini né a forze dell'ordine.
+**Team:** Luigi Caucci ([@lcaucci27](https://github.com/lcaucci27)) and [@luckybros](https://github.com/luckybros).
 
-| Livello | Tecnologia | Ruolo |
+## Client and stack
+
+**Client:** a municipality acting as data controller. In the demo the case is Roma Capitale, which publishes the data of its public WiFi service DigitRoma. The operational user is the DPO, supported by the open data office and the cybersecurity contact. The decision supported is whether to publish a dataset and with which corrections. The product is not meant for citizens or law enforcement.
+
+| Layer | Technology | Role |
 |---|---|---|
-| Frontend | Streamlit 1.64.0, Plotly 6.9.0 | Interfaccia web, grafici, stato di sessione |
-| Backend | Python 3.12, moduli `core/` nello stesso processo di Streamlit | Regole di privacy, collegabilità, audit e guardrail |
-| Dati | pandas 2.3.3, numpy 2.5.3, openpyxl 3.1.5 | Caricamento CSV/XLSX e trasformazioni |
-| Modelli | scikit-learn 1.9.1 | TF-IDF, classificazione dell'impatto CSIRT, anomalie, clustering |
-| IA locale (opzionale) | Ollama con `bge-m3` e `qwen2.5:3b` | Ricerca semantica e riscrittura dei risultati già calcolati |
-| Persistenza | File CSV in `data/` | Nessun database, nessun servizio cloud |
+| Frontend | Streamlit 1.64.0, Plotly 6.9.0 | Web interface, charts, session state |
+| Backend | Python 3.12, `core/` modules in the same process as Streamlit | Privacy rules, linkability, audit and guardrails |
+| Data | pandas 2.3.3, numpy 2.5.3, openpyxl 3.1.5 | CSV/XLSX loading and transformations |
+| Models | scikit-learn 1.9.1 | TF-IDF, CSIRT impact classification, anomalies, clustering |
+| Local AI (optional) | Ollama with `bge-m3` and `qwen2.5:3b` | Semantic search and rewriting of already computed results |
+| Persistence | CSV files in `data/` | No database, no cloud service |
 
-Frontend e backend girano nello stesso processo per avere un solo comando di avvio e nessuna dipendenza di rete. In produzione la logica di `core/` andrebbe esposta come API separata.
+Frontend and backend share one process to get a single start command and no network dependency. In production, the `core/` logic would be exposed as a separate API.
 
-## Avvio
+## Getting started
 
-Richiede Python 3.12.
+Requires Python 3.12.
 
 ### Windows PowerShell
 
@@ -47,24 +51,24 @@ chmod +x scripts/setup.sh scripts/run.sh
 ./scripts/run.sh
 ```
 
-Aprire `http://localhost:8501`.
+Open `http://localhost:8501`.
 
-## Percorso dimostrativo
+## Demo path
 
-1. **Verifica** mostra l’esito, le prove più leggibili e la correzione consigliata.
-2. **Incrocia** esplicita la conoscenza ausiliaria e conta i candidati prodotti dal secondo file.
-3. **Assistente** interpreta richieste in italiano, esegue i controlli adatti e consente di azzerare la conversazione.
-4. **Audit completo** svolge tutti i controlli e genera un file per il DPO.
+1. **Verifica** (Check) shows the outcome, the most readable evidence and the recommended correction.
+2. **Incrocia** (Cross-check) makes the auxiliary knowledge explicit and counts the candidates produced by the second file.
+3. **Assistente** (Assistant) interprets requests in Italian, runs the matching checks and lets the user reset the conversation.
+4. **Audit completo** (Full audit) runs all checks and generates a file for the DPO.
 
-Il dato centrale è semplice: conoscere giorno, ora, sede e lingua rende distinguibile il 99,5% delle sessioni del campione. Una riga distinguibile o collegabile non equivale a una persona identificata: il secondo passaggio richiede un dataset o una conoscenza che porti davvero un'identità. `LOGINCOUNT`, presente nel CSV ma non documentato dal catalogo, giustifica una richiesta di chiarimento all’ente, non l’attribuzione delle righe a persone reali.
+The central finding is simple: knowing day, time, venue and language makes 99.5% of the sessions in the sample distinguishable. A distinguishable or linkable row does not mean an identified person: the second step needs a dataset or knowledge that actually carries an identity. `LOGINCOUNT`, present in the CSV but not documented in the catalogue, justifies a request for clarification to the data owner, not the attribution of rows to real people.
 
-La pagina **Incrocia** include già due coppie ufficiali, senza upload obbligatorio: utenti/login per giorno e zona del Comune di Milano, e affollamento/anagrafica aree WiFi del Comune di Bologna. L’upload resta disponibile per altri enti. Roma non viene abbinata a un secondo dataset non documentato.
+The **Incrocia** page already includes two official pairs, with no mandatory upload: users/logins by day and zone from the Municipality of Milan, and WiFi crowding/area registry from the Municipality of Bologna. Upload remains available for other municipalities. Rome is not paired with an undocumented second dataset.
 
-I campioni demo sono abbastanza estesi da rendere il confronto visibile senza rallentare la presentazione: Milano usa i due export completi disponibili, con 13.793 e 13.930 righe; Bologna usa 5.000 osservazioni e l’anagrafica completa di 76 aree. Nell’incrocio Milano, 12.638 righe trovano almeno un record e 12.205 ne trovano uno solo. In quello Bologna, tutte le 5.000 osservazioni ricevono una sola area.
+The demo samples are large enough to make the comparison visible without slowing the presentation. Milan uses the two complete exports available, with 13,793 and 13,930 rows; Bologna uses 5,000 observations and the full registry of 76 areas. In the Milan cross-check, 12,638 rows match at least one record and 12,205 match exactly one. In the Bologna one, all 5,000 observations receive exactly one area.
 
-## IA locale opzionale
+## Optional local AI
 
-Senza Ollama l’app resta utilizzabile con modelli scikit-learn e risposte calcolate. Per aggiungere ricerca semantica e riscrittura locale:
+Without Ollama the app stays usable with scikit-learn models and computed answers. To add semantic search and local rewriting:
 
 ```powershell
 ollama pull bge-m3
@@ -73,44 +77,46 @@ python scripts/setup_local_ai.py
 python scripts/precompute_embeddings.py
 ```
 
-`watermark-dpo:latest` è una configurazione locale specializzata, non un fine-tuning dei pesi. Il modello linguistico riceve soltanto la domanda e risultati aggregati; le righe del file non vengono incluse nel prompt. La risposta usa uno schema JSON e viene scartata se introduce numeri assenti dai risultati.
+`watermark-dpo:latest` is a specialised local configuration, not a fine-tuning of the weights. The language model receives only the question and aggregated results; the file rows are not included in the prompt. The answer follows a JSON schema and is discarded if it introduces numbers absent from the results.
 
-Nell'interfaccia l'utente sceglie soltanto tra **Watermark · chatbot locale** e **Solo risultati calcolati**. Le varianti Qwen 3B base e 7B restano nel solo script di benchmark: non aggiungono funzioni al prodotto. BGE-M3 serve alla ricerca per significato e TF-IDF alla classificazione degli allarmi; nessuno dei due è un chatbot.
+In the interface the user only chooses between **Watermark · local chatbot** and **Computed results only**. The Qwen 3B base and 7B variants remain in the benchmark script only: they add no product features. BGE-M3 handles search by meaning and TF-IDF handles alert classification; neither is a chatbot.
 
-Per ripetere il confronto locale:
+To repeat the local comparison:
 
 ```powershell
 python scripts/evaluate_local_llm.py watermark-dpo:latest qwen2.5:3b qwen2.5:7b
 ```
 
-Nel test semantico incluso, tutti hanno superato 4 casi su 4 con gli stessi guardrail; il 3B base e la variante Watermark hanno richiesto circa 52 secondi complessivi, il 7B circa 187. I tempi dipendono dall'hardware.
+In the included semantic test, all variants passed 4 of 4 cases with the same guardrails; the 3B base and the Watermark variant took about 52 seconds in total, the 7B about 187. Timings depend on the hardware.
 
-## Materiali di prodotto e pitch
+## Product and pitch materials
 
-- `docs/MUNICIPAL_DATASET_SCENARIOS.md`: coppie e triple comunali, con limiti interpretativi.
-- `docs/BUSINESS_PLAN.md`: committente, prezzi ipotetici, mercato e KPI del pilot.
-- `docs/PRODUCT_ARCHITECTURE.md`: passaggio da demo locale a servizio multi-ente.
-- `docs/SLIDES_BRIEF.md`: sei slide, prompt visuali e discorso cronometrato a tre minuti.
-- `docs/CLAUDE_POWERPOINT_PROMPTS.md`: prompt slide per slide per l'add-in di Claude.
-- `docs/DEMO_SCREENSHOT_PLAN.md`: schermata, ritaglio e funzione da mostrare in ogni slide.
+All in Italian:
 
-## Struttura del repository
+- `docs/MUNICIPAL_DATASET_SCENARIOS.md`: municipal pairs and triples, with interpretation limits.
+- `docs/BUSINESS_PLAN.md`: client, hypothetical prices, market and pilot KPIs.
+- `docs/PRODUCT_ARCHITECTURE.md`: path from local demo to multi-municipality service.
+- `docs/SLIDES_BRIEF.md`: six slides, visual prompts and a timed three-minute speech.
+- `docs/CLAUDE_POWERPOINT_PROMPTS.md`: slide-by-slide prompts for the Claude add-in.
+- `docs/DEMO_SCREENSHOT_PLAN.md`: screen, crop and feature to show in each slide.
+
+## Repository structure
 
 ```text
-streamlit_app.py   navigazione e configurazione
-app_pages/         quattro flussi utente essenziali
-views/             componenti Streamlit condivisi
-core/              regole, modelli, audit e catalogo fonti
-scripts/           acquisizione riproducibile e setup locale
-data/              campioni pubblici e cache offline versionate
-tests/             regressioni del motore e degli incroci demo
-docs/              fonti, architettura, business plan e pitch
-assets/            logo vettoriale e PNG per PowerPoint
+streamlit_app.py   navigation and configuration
+app_pages/         four essential user flows
+views/             shared Streamlit components
+core/              rules, models, audit and source catalogue
+scripts/           reproducible data acquisition and local setup
+data/              public samples and versioned offline caches
+tests/             regressions for the engine and the demo cross-checks
+docs/              sources, architecture, business plan and pitch
+assets/            vector logo and PNG files for PowerPoint
 ```
 
-Le sorgenti comunali e le chiavi di collegamento vivono in `core/municipal_catalog.py`, separate dalla UI. Per aggiungere un ente si registra una fonte e, se disponibile, il mapping delle chiavi; i controlli di granularità, celle piccole e collegabilità restano comuni.
+Municipal sources and linkage keys live in `core/municipal_catalog.py`, separate from the UI. To add a municipality, register a source and, if available, the key mapping; the granularity, small-cell and linkability checks stay shared.
 
-## Verifica tecnica
+## Technical verification
 
 ```powershell
 python -m compileall -q core views app_pages scripts streamlit_app.py
@@ -119,12 +125,12 @@ python -m pytest -q
 git diff --check
 ```
 
-La logica di dominio è in `core/`, le pagine Streamlit in `app_pages/`, le viste condivise in `views/` e i materiali del progetto in `docs/`.
+Domain logic is in `core/`, Streamlit pages in `app_pages/`, shared views in `views/` and project materials in `docs/`.
 
-## Limiti
+## Limits
 
-- La semantica di `LOGINCOUNT` deve essere confermata da Roma Capitale.
-- Un bollettino CSIRT semanticamente pertinente non dimostra che la versione installata sia vulnerabile.
-- Le misure descrivono il campione disponibile; nessuna persona viene cercata o identificata.
-- La classificazione automatica di colonne e granularità deve essere confermata dal titolare del dato.
-- Il prodotto supporta la decisione del DPO; non certifica da solo l'anonimato.
+- The semantics of `LOGINCOUNT` must be confirmed by Roma Capitale.
+- A semantically relevant CSIRT bulletin does not prove that the installed version is vulnerable.
+- The measures describe the available sample; no person is searched for or identified.
+- The automatic classification of columns and granularity must be confirmed by the data owner.
+- The product supports the DPO's decision; it does not certify anonymity on its own.
