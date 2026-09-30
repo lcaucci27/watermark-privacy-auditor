@@ -4,6 +4,25 @@ Watermark aiuta il DPO di un Comune a decidere se un dataset urbano può essere 
 
 Tutti i controlli essenziali girano in locale. L’app usa i dati di Roma Capitale, i bollettini CSIRT Italia e i provvedimenti del Garante privacy già inclusi in `data/`.
 
+## Contesto
+
+Progetto sviluppato da un team di due persone al Campionato Universitario AI 2026, tappa di Napoli del 18 settembre 2026. Lo sviluppo è durato circa sette ore, con le funzioni congelate 90 minuti prima della consegna. La keyword sorteggiata era **privacy**. Il vincolo della gara era un prodotto che funziona offline, senza API a pagamento né chiavi.
+
+## Committente e stack
+
+**Committente:** un Comune, nel ruolo di titolare del trattamento dei dati. Nella demo il caso è Roma Capitale, che pubblica i dati del WiFi pubblico DigitRoma. L'utente operativo è il DPO, affiancato dall'ufficio open data e dal referente per la cybersicurezza. La decisione supportata è se pubblicare un dataset e con quali correzioni. Il prodotto non è destinato a cittadini né a forze dell'ordine.
+
+| Livello | Tecnologia | Ruolo |
+|---|---|---|
+| Frontend | Streamlit 1.64.0, Plotly 6.9.0 | Interfaccia web, grafici, stato di sessione |
+| Backend | Python 3.12, moduli `core/` nello stesso processo di Streamlit | Regole di privacy, collegabilità, audit e guardrail |
+| Dati | pandas 2.3.3, numpy 2.5.3, openpyxl 3.1.5 | Caricamento CSV/XLSX e trasformazioni |
+| Modelli | scikit-learn 1.9.1 | TF-IDF, classificazione dell'impatto CSIRT, anomalie, clustering |
+| IA locale (opzionale) | Ollama con `bge-m3` e `qwen2.5:3b` | Ricerca semantica e riscrittura dei risultati già calcolati |
+| Persistenza | File CSV in `data/` | Nessun database, nessun servizio cloud |
+
+Frontend e backend girano nello stesso processo per avere un solo comando di avvio e nessuna dipendenza di rete. In produzione la logica di `core/` andrebbe esposta come API separata.
+
 ## Avvio
 
 Richiede Python 3.12.
