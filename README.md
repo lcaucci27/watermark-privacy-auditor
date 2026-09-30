@@ -8,7 +8,7 @@ The interface and the datasets are in Italian.
 
 ## Context
 
-Built by a team of two at the Campionato Universitario AI 2026 (AI University Championship), Naples stage, 18 September 2026. Development took about seven hours, with features frozen 90 minutes before the deadline. The drawn keyword was **privacy**. The competition constraint was a product that runs offline, with no paid API and no keys.
+Built by a team of two at the Campionato Universitario AI 2026 (AI University Championship), Naples stage, 18 September 2026. Development took about seven hours, with features frozen 90 minutes before the deadline. The drawn keyword was **privacy**. The competition constraint was a product that runs offline, with no paid API and no keys. The project was presented as a live demo, and the team placed 5th out of 15. It was the only team of two; the others had three members.
 
 **Team:** Luigi Caucci ([@lcaucci27](https://github.com/lcaucci27)) and [@luckybros](https://github.com/luckybros).
 
@@ -89,16 +89,13 @@ python scripts/evaluate_local_llm.py watermark-dpo:latest qwen2.5:3b qwen2.5:7b
 
 In the included semantic test, all variants passed 4 of 4 cases with the same guardrails; the 3B base and the Watermark variant took about 52 seconds in total, the 7B about 187. Timings depend on the hardware.
 
-## Product and pitch materials
+## Product documentation
 
 All in Italian:
 
 - `docs/MUNICIPAL_DATASET_SCENARIOS.md`: municipal pairs and triples, with interpretation limits.
 - `docs/BUSINESS_PLAN.md`: client, hypothetical prices, market and pilot KPIs.
 - `docs/PRODUCT_ARCHITECTURE.md`: path from local demo to multi-municipality service.
-- `docs/SLIDES_BRIEF.md`: six slides, visual prompts and a timed three-minute speech.
-- `docs/CLAUDE_POWERPOINT_PROMPTS.md`: slide-by-slide prompts for the Claude add-in.
-- `docs/DEMO_SCREENSHOT_PLAN.md`: screen, crop and feature to show in each slide.
 
 ## Repository structure
 
@@ -111,7 +108,7 @@ scripts/           reproducible data acquisition and local setup
 data/              public samples and versioned offline caches
 tests/             regressions for the engine and the demo cross-checks
 docs/              sources, architecture, business plan and pitch
-assets/            vector logo and PNG files for PowerPoint
+assets/            logo and favicon
 ```
 
 Municipal sources and linkage keys live in `core/municipal_catalog.py`, separate from the UI. To add a municipality, register a source and, if available, the key mapping; the granularity, small-cell and linkability checks stay shared.

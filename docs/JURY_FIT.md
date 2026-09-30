@@ -53,9 +53,7 @@ Prova da mostrare: badge dell’esito, confronto Milano già configurato e downl
 
 ## Qualità della presentazione
 
-Il pitch dura 180 secondi. Ogni slide ha una tesi, una prova visiva e una frase operativa. Gli screenshot reali sostituiscono una demo live fragile. Il deck include problema, prova Roma, architettura IA, incrocio Milano, portabilità e proposta commerciale.
-
-I placeholder e le istruzioni per Claude PowerPoint sono in `docs/CLAUDE_POWERPOINT_PROMPTS.md`; la sequenza degli screenshot è in `docs/DEMO_SCREENSHOT_PLAN.md`.
+La presentazione è la demo dal vivo dell'app, senza deck. Il percorso mostra la prova su Roma, l'incrocio Milano e il rapporto per il DPO; screenshot e CSV di riserva coprono un guasto della demo.
 
 ## Committente e utilità aziendale
 

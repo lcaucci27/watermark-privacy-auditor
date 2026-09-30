@@ -4,7 +4,7 @@ Stato al 18/09/2026, tappa di Napoli. Keyword sorteggiata: **privacy**. Tempo to
 
 Istruzioni per Claude Code: leggi prima `CLAUDE.md`, poi questo file, poi `git status`. Le decisioni sotto sono già state approvate o sono in attesa di approvazione come indicato: non riaprirle senza un fatto nuovo.
 
-## Committente e stack (da dichiarare sempre: slide, pitch, README, risposte alla giuria)
+## Committente e stack (da dichiarare sempre: pitch, README, risposte alla giuria)
 
 **Committente: un Comune, nel ruolo di titolare del trattamento dei dati.** Nella demo il caso è Roma Capitale, che pubblica ogni giorno i dati del WiFi pubblico DigitRoma.
 - Utente operativo: il **DPO** (responsabile della protezione dei dati) del Comune, affiancato dall'ufficio open data e dal referente per la cybersicurezza.
