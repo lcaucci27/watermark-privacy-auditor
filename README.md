@@ -8,9 +8,9 @@ The interface and the datasets are in Italian.
 
 ## Context
 
-Built by a team of two at the Campionato Universitario AI 2026 (AI University Championship), Naples stage, 18 September 2026. Development took about seven hours, with features frozen 90 minutes before the deadline. The drawn keyword was **privacy**. The competition constraint was a product that runs offline, with no paid API and no keys. The project was presented as a live demo.
+Built by a team of two at CUAI26 (Campionato Universitario AI 2026, the Italian university AI championship), Naples stage, 18 September 2026. Development took about seven hours, with features frozen 90 minutes before the deadline. The drawn keyword was **privacy**. The competition constraint was a product that runs offline, with no paid API and no keys. The project was presented as a live demo.
 
-**Team:** Luigi Caucci ([@lcaucci27](https://github.com/lcaucci27)) and [@luckybros](https://github.com/luckybros).
+**Team:** Luigi Caucci ([@lcaucci27](https://github.com/lcaucci27)) and Luca Antonio Scolletta ([@luckybros](https://github.com/luckybros)).
 
 ## Client and stack
 
