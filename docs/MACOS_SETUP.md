@@ -5,8 +5,8 @@ Il repository contiene codice, tema, script e dataset di esempio. Servono Git, P
 ## 1. Accettare l’invito e clonare
 
 ```bash
-git clone https://github.com/lcaucci27/hackathon-ai.git
-cd hackathon-ai
+git clone https://github.com/lcaucci27/watermark-privacy-auditor.git
+cd watermark-privacy-auditor
 ```
 
 Se il repository privato non è accessibile, verificare di aver accettato l’invito con lo stesso account usato da Git.

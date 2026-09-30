@@ -8,7 +8,7 @@ The interface and the datasets are in Italian.
 
 ## Context
 
-Built by a team of two at the Campionato Universitario AI 2026 (AI University Championship), Naples stage, 18 September 2026. Development took about seven hours, with features frozen 90 minutes before the deadline. The drawn keyword was **privacy**. The competition constraint was a product that runs offline, with no paid API and no keys. The project was presented as a live demo, and the team placed 5th out of 15. It was the only team of two; the others had three members.
+Built by a team of two at the Campionato Universitario AI 2026 (AI University Championship), Naples stage, 18 September 2026. Development took about seven hours, with features frozen 90 minutes before the deadline. The drawn keyword was **privacy**. The competition constraint was a product that runs offline, with no paid API and no keys. The project was presented as a live demo.
 
 **Team:** Luigi Caucci ([@lcaucci27](https://github.com/lcaucci27)) and [@luckybros](https://github.com/luckybros).
 
@@ -34,8 +34,8 @@ Requires Python 3.12.
 ### Windows PowerShell
 
 ```powershell
-git clone https://github.com/lcaucci27/hackathon-ai.git
-Set-Location .\hackathon-ai
+git clone https://github.com/lcaucci27/watermark-privacy-auditor.git
+Set-Location .\watermark-privacy-auditor
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\scripts\setup.ps1
 .\scripts\run.ps1
@@ -44,8 +44,8 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ### macOS
 
 ```bash
-git clone https://github.com/lcaucci27/hackathon-ai.git
-cd hackathon-ai
+git clone https://github.com/lcaucci27/watermark-privacy-auditor.git
+cd watermark-privacy-auditor
 chmod +x scripts/setup.sh scripts/run.sh
 ./scripts/setup.sh
 ./scripts/run.sh
